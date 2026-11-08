@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>Ballast.Risk</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../core/Ballast.Core.csproj" />
+    <ProjectReference Include="../treasury/Ballast.Treasury.csproj" />
+    <ProjectReference Include="../../ai_models/Ballast.AiModels.csproj" />
+  </ItemGroup>
+</Project>

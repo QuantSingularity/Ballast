@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>Ballast.Backend.Tests</RootNamespace>
+    <ValidateExecutableReferencesMatchSelfContained>false</ValidateExecutableReferencesMatchSelfContained>
+  </PropertyGroup>
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <Compile Include="../../testkit/MiniTest.cs" Link="MiniTest.cs" />
+    <ProjectReference Include="../app/Ballast.Api.csproj" />
+    <ProjectReference Include="../core/Ballast.Core.csproj" />
+    <ProjectReference Include="../db/Ballast.Data.csproj" />
+    <ProjectReference Include="../market_data/Ballast.MarketData.csproj" />
+    <ProjectReference Include="../treasury/Ballast.Treasury.csproj" />
+    <ProjectReference Include="../risk/Ballast.Risk.csproj" />
+    <ProjectReference Include="../infrastructure/Ballast.Infrastructure.csproj" />
+    <ProjectReference Include="../../ai_models/Ballast.AiModels.csproj" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>Ballast.MarketData</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../core/Ballast.Core.csproj" />
+    <ProjectReference Include="../../ai_models/Ballast.AiModels.csproj" />
+  </ItemGroup>
+</Project>

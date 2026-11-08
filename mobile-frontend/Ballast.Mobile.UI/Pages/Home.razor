@@ -1,0 +1,69 @@
+@page "/"
+@inherits ApiPageBase
+
+<PageTitle>Cash | Ballast</PageTitle>
+<h1>Cash position</h1>
+@if (Error is not null)
+{
+    <div class="alert bad" role="alert">@Error</div>
+}
+@if (Loading)
+{
+    <p class="muted">Loading...</p>
+}
+else if (_summary is not null && _ladder is not null)
+{
+    <p class="muted">As of @_summary.AsOf.ToString("yyyy-MM-dd"), @_summary.AccountCount accounts</p>
+    <div class="tiles">
+        <KpiTile Label="Total cash" Value="@Formatters.Money(_summary.TotalBase, _summary.BaseCurrency)" />
+        <KpiTile Label="In 30 days" Value="@Formatters.Money((decimal)_projected30, _summary.BaseCurrency)" Hint="Forecast" />
+        <KpiTile Label="Liquidity coverage" Value="@($"{_risk?.LiquidityCoverageRatio:F1}x")" Hint="vs 30 day outflows" Tone="@(_risk?.LiquidityCoverageRatio < 2 ? "warn" : "good")" />
+        <KpiTile Label="Awaiting approval" Value="@_pending.ToString()" Tone="@(_pending > 0 ? "warn" : "good")" />
+    </div>
+
+    <section class="card">
+        <h2>By currency</h2>
+        @foreach (var c in _summary.ByCurrency)
+        {
+            <div class="bar-row">
+                <span>@c.Currency</span>
+                <div class="bar-track"><div class="bar-fill" style="width: @(Math.Round((double)c.Share * 100, 1).ToString(System.Globalization.CultureInfo.InvariantCulture))%"></div></div>
+                <span class="right">@Formatters.Pct((double)c.Share)</span>
+            </div>
+        }
+    </section>
+
+    <section class="card">
+        <h2>Needs attention</h2>
+        @if (_attention.Count == 0)
+        {
+            <p class="muted">All limits are within policy.</p>
+        }
+        @foreach (var l in _attention)
+        {
+            <div class="list-item">
+                <StatusPill Status="@l.Status" />
+                <div>@l.Name<div class="muted">@l.Detail</div></div>
+            </div>
+        }
+    </section>
+}
+
+@code {
+    private CashSummary? _summary;
+    private Ladder? _ladder;
+    private RiskMetrics? _risk;
+    private List<LimitResult> _attention = [];
+    private int _pending;
+    private double _projected30;
+
+    protected override Task OnInitializedAsync() => RunAsync(async () =>
+    {
+        _summary = await Api.GetCashSummaryAsync();
+        _ladder = await Api.GetLadderAsync();
+        _risk = await Api.GetRiskMetricsAsync();
+        _attention = (await Api.GetLimitsAsync()).Where(l => l.Status != "Ok").ToList();
+        _pending = (await Api.GetPaymentsAsync("PendingApproval")).Count;
+        _projected30 = _ladder.Buckets.FirstOrDefault(b => b.Days == 30)?.ProjectedBalance ?? 0;
+    });
+}

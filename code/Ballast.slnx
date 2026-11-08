@@ -1,0 +1,36 @@
+<Solution>
+  <Folder Name="/ai_models/">
+    <Project Path="ai_models/Ballast.AiModels.csproj" />
+  </Folder>
+  <Folder Name="/ai_models/examples/">
+    <Project Path="ai_models/examples/Ballast.AiModels.Examples.csproj" />
+  </Folder>
+  <Folder Name="/ai_models/tests/">
+    <Project Path="ai_models/tests/Ballast.AiModels.Tests.csproj" />
+  </Folder>
+  <Folder Name="/backend/" />
+  <Folder Name="/backend/app/">
+    <Project Path="backend/app/Ballast.Api.csproj" />
+  </Folder>
+  <Folder Name="/backend/core/">
+    <Project Path="backend/core/Ballast.Core.csproj" />
+  </Folder>
+  <Folder Name="/backend/db/">
+    <Project Path="backend/db/Ballast.Data.csproj" />
+  </Folder>
+  <Folder Name="/backend/infrastructure/">
+    <Project Path="backend/infrastructure/Ballast.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/backend/market_data/">
+    <Project Path="backend/market_data/Ballast.MarketData.csproj" />
+  </Folder>
+  <Folder Name="/backend/risk/">
+    <Project Path="backend/risk/Ballast.Risk.csproj" />
+  </Folder>
+  <Folder Name="/backend/tests/">
+    <Project Path="backend/tests/Ballast.Backend.Tests.csproj" />
+  </Folder>
+  <Folder Name="/backend/treasury/">
+    <Project Path="backend/treasury/Ballast.Treasury.csproj" />
+  </Folder>
+</Solution>

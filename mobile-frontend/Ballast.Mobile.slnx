@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="Ballast.Mobile.UI/Ballast.Mobile.UI.csproj" />
+  <Project Path="Ballast.Mobile.Tests/Ballast.Mobile.Tests.csproj" />
+</Solution>

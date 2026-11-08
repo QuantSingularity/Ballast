@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <RootNamespace>Ballast.Api</RootNamespace>
+    <AssemblyName>Ballast.Api</AssemblyName>
+    <ServerGarbageCollection>false</ServerGarbageCollection>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../core/Ballast.Core.csproj" />
+    <ProjectReference Include="../db/Ballast.Data.csproj" />
+    <ProjectReference Include="../market_data/Ballast.MarketData.csproj" />
+    <ProjectReference Include="../treasury/Ballast.Treasury.csproj" />
+    <ProjectReference Include="../risk/Ballast.Risk.csproj" />
+    <ProjectReference Include="../infrastructure/Ballast.Infrastructure.csproj" />
+    <ProjectReference Include="../../ai_models/Ballast.AiModels.csproj" />
+  </ItemGroup>
+</Project>

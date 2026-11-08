@@ -1,0 +1,51 @@
+@page "/login"
+@layout EmptyLayout
+@inject ApiClient Api
+@inject NavigationManager Nav
+
+<PageTitle>Sign in | Ballast</PageTitle>
+<h1 class="brand">Ballast<span>.</span></h1>
+<p class="muted">Treasury and liquidity management</p>
+
+@if (_error is not null)
+{
+    <div class="alert bad" role="alert">@_error</div>
+}
+
+<div class="field">
+    <label for="email">Email</label>
+    <input id="email" type="email" autocomplete="username" @bind="_email" @bind:event="oninput" />
+</div>
+<div class="field">
+    <label for="password">Password</label>
+    <input id="password" type="password" autocomplete="current-password" @bind="_password" @bind:event="oninput" />
+</div>
+<button class="primary block" type="button" disabled="@(_busy || string.IsNullOrWhiteSpace(_email) || string.IsNullOrEmpty(_password))" @onclick="SignInAsync">
+    @(_busy ? "Signing in..." : "Sign in")
+</button>
+
+@code {
+    private string _email = "";
+    private string _password = "";
+    private string? _error;
+    private bool _busy;
+
+    private async Task SignInAsync()
+    {
+        _busy = true;
+        _error = null;
+        try
+        {
+            await Api.LoginAsync(_email.Trim(), _password);
+            Nav.NavigateTo("");
+        }
+        catch (ApiException ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+}

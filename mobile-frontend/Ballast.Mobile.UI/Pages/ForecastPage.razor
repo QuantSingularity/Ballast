@@ -1,0 +1,52 @@
+@page "/forecast"
+@inherits ApiPageBase
+
+<PageTitle>Forecast | Ballast</PageTitle>
+<h1>Cash forecast</h1>
+<div class="segmented" role="group" aria-label="Horizon">
+    @foreach (var h in new[] { 30, 60, 91 })
+    {
+        <button type="button" class="@(_horizon == h ? "active" : "")" @onclick="() => SetHorizonAsync(h)">@h days</button>
+    }
+</div>
+@if (Error is not null)
+{
+    <div class="alert bad" role="alert">@Error</div>
+}
+@if (Loading)
+{
+    <p class="muted">Computing forecast...</p>
+}
+else if (_forecast is not null)
+{
+    var last = _forecast.Daily[^1];
+    <div class="tiles">
+        <KpiTile Label="Expected net flow" Value="@Formatters.Money((decimal)last.Cumulative, _forecast.Currency)" Hint="@($"Next {_forecast.HorizonDays} days")" />
+        <KpiTile Label="@($"{Formatters.Pct(_forecast.Confidence)} range")" Value="@($"{Formatters.Compact(last.CumulativeLower)} to {Formatters.Compact(last.CumulativeUpper)}")" />
+    </div>
+    <section class="card">
+        <h2>Cumulative net cash flow (@_forecast.Currency)</h2>
+        <SparkChart Points="_points" AriaLabel="Cumulative cash forecast with confidence band" />
+        <p class="muted">Ensemble model blend: @Formatters.Pct(_forecast.Model.WeightHoltWinters) Holt-Winters, @Formatters.Pct(_forecast.Model.WeightRidge) ridge. Interval calibrated from @_forecast.Model.CalibrationOrigins rolling origins.</p>
+    </section>
+}
+
+@code {
+    private int _horizon = 91;
+    private Forecast? _forecast;
+    private List<ChartPoint> _points = [];
+
+    protected override Task OnInitializedAsync() => LoadAsync();
+
+    private Task SetHorizonAsync(int h)
+    {
+        _horizon = h;
+        return LoadAsync();
+    }
+
+    private Task LoadAsync() => RunAsync(async () =>
+    {
+        _forecast = await Api.GetForecastAsync("all", _horizon, 0.9);
+        _points = _forecast.Daily.Select(d => new ChartPoint(Formatters.ShortDate(d.Date), d.Cumulative, d.CumulativeLower, d.CumulativeUpper)).ToList();
+    });
+}

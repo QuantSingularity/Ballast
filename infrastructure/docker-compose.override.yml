@@ -1,0 +1,5 @@
+# Local development additions. Applied automatically by `docker compose up`.
+services:
+  backend:
+    ports:
+      - "5000:8080"

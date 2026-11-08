@@ -1,0 +1,86 @@
+@page "/approvals"
+@inherits ApiPageBase
+@inject ApprovalsViewModel Vm
+
+<PageTitle>Approvals | Ballast</PageTitle>
+<h1>Approvals</h1>
+@if (Vm.Error is not null)
+{
+    <div class="alert bad" role="alert">@Vm.Error</div>
+}
+@if (Vm.Notice is not null)
+{
+    <div class="alert good" role="status">@Vm.Notice</div>
+}
+@if (Error is not null)
+{
+    <div class="alert bad" role="alert">@Error</div>
+}
+@if (Loading)
+{
+    <p class="muted">Loading...</p>
+}
+else
+{
+    @foreach (var p in Vm.Pending)
+    {
+        <section class="card payment">
+            <div class="row-between">
+                <strong>@p.Beneficiary</strong>
+                <strong>@Formatters.Money(p.Amount, p.Currency, 2)</strong>
+            </div>
+            <div class="muted">@p.Id, value date @p.ValueDate.ToString("yyyy-MM-dd")</div>
+            <div class="muted">Approvals @p.Approvals.Count of @p.RequiredApprovals</div>
+            @if (p.RiskFlags.Count > 0)
+            {
+                <ul class="flags">
+                    @foreach (var f in p.RiskFlags)
+                    {
+                        <li>@f</li>
+                    }
+                </ul>
+            }
+            <div class="actions">
+                @if (Vm.CanApprove(p))
+                {
+                    <button type="button" class="primary" disabled="@Vm.Busy" @onclick="() => Vm.ApproveAsync(p)">Approve</button>
+                }
+                @if (Vm.CanReject(p))
+                {
+                    <button type="button" class="danger" disabled="@Vm.Busy" @onclick="() => StartReject(p)">Reject</button>
+                }
+            </div>
+            @if (_rejecting == p.Id)
+            {
+                <div class="field">
+                    <label for="reason-@p.Id">Reason for rejection</label>
+                    <input id="reason-@p.Id" type="text" @bind="_reason" @bind:event="oninput" />
+                    <button type="button" class="danger block" disabled="@(Vm.Busy || string.IsNullOrWhiteSpace(_reason))" @onclick="() => ConfirmRejectAsync(p)">Confirm rejection</button>
+                </div>
+            }
+        </section>
+    }
+    @if (Vm.Pending.Count == 0)
+    {
+        <p class="muted">Nothing is waiting for approval.</p>
+    }
+}
+
+@code {
+    private string? _rejecting;
+    private string _reason = "";
+
+    protected override Task OnInitializedAsync() => RunAsync(Vm.LoadAsync);
+
+    private void StartReject(Payment p)
+    {
+        _rejecting = _rejecting == p.Id ? null : p.Id;
+        _reason = "";
+    }
+
+    private async Task ConfirmRejectAsync(Payment p)
+    {
+        await Vm.RejectAsync(p, _reason);
+        _rejecting = null;
+    }
+}

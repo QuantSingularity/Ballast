@@ -1,0 +1,57 @@
+@page "/fx"
+@inherits ApiPageBase
+
+<PageTitle>FX | Ballast</PageTitle>
+<h1>FX exposure</h1>
+@if (Error is not null)
+{
+    <div class="alert bad" role="alert">@Error</div>
+}
+@if (Loading)
+{
+    <p class="muted">Loading...</p>
+}
+else if (_exposure is not null)
+{
+    <section class="card">
+        <h2>Next 30 days</h2>
+        @foreach (var l in _exposure.Lines.Where(l => l.BucketIndex == 0))
+        {
+            <div class="list-item">
+                <strong>@l.Currency</strong>
+                <div>
+                    Net @Formatters.Money(l.NetNative, l.Currency), hedged @Formatters.Pct((double)l.HedgeRatio)
+                    <div class="muted">Open @Formatters.Money(l.OpenBase, _exposure.BaseCurrency)</div>
+                </div>
+            </div>
+        }
+    </section>
+    <section class="card">
+        <h2>Hedge recommendations</h2>
+        @foreach (var r in _recommendations)
+        {
+            <div class="list-item">
+                <strong>@r.Currency</strong>
+                <div>
+                    @r.Bucket: @(r.Direction == "SellForeign" ? "sell" : "buy") @Formatters.Money(r.RecommendedNotional, r.Currency)
+                    <div class="muted">Target @Formatters.Pct((double)r.TargetRatio), now @Formatters.Pct((double)r.CurrentRatio)</div>
+                </div>
+            </div>
+        }
+        @if (_recommendations.Count == 0)
+        {
+            <p class="muted">Hedge coverage meets target everywhere.</p>
+        }
+    </section>
+}
+
+@code {
+    private Exposure? _exposure;
+    private List<HedgeRecommendation> _recommendations = [];
+
+    protected override Task OnInitializedAsync() => RunAsync(async () =>
+    {
+        _exposure = await Api.GetExposuresAsync();
+        _recommendations = (await Api.GetRecommendationsAsync()).Where(r => r.Direction is not null && r.RecommendedNotional > 0).ToList();
+    });
+}

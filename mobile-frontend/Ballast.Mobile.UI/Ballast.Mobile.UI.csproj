@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk.Razor">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>Ballast.Mobile.UI</RootNamespace>
+  </PropertyGroup>
+  <!--
+    Server and test builds use the ASP.NET Core shared framework. The MAUI host references this project with
+    BallastUsePackages=true because mobile targets have no shared framework and need the package instead.
+  -->
+  <ItemGroup Condition="'$(BallastUsePackages)' != 'true'">
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(BallastUsePackages)' == 'true'">
+    <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="10.0.0" />
+  </ItemGroup>
+</Project>

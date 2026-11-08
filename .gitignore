@@ -1,0 +1,24 @@
+# .NET
+bin/
+obj/
+*.user
+*.suo
+.vs/
+TestResults/
+publish/
+# Node / Angular
+node_modules/
+web-frontend/dist/
+web-frontend/.angular/
+web-frontend/coverage/
+# Local state and secrets
+.env
+*.local
+ballast-state.json
+data/
+# OS / editors
+.DS_Store
+.idea/
+*.swp
+# Release artifacts
+dist/

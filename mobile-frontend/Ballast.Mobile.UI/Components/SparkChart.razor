@@ -1,0 +1,43 @@
+@if (_geo is not null)
+{
+    <svg class="spark" viewBox="0 0 @W @H" role="img" aria-label="@AriaLabel">
+        @foreach (var t in _geo.YTicks)
+        {
+            <line class="grid-line" x1="48" x2="@(W - 10)" y1="@Num(t.Position)" y2="@Num(t.Position)" />
+            @SvgText(42, t.Position + 4, "end", t.Label)
+        }
+        @foreach (var t in _geo.XTicks)
+        {
+            @SvgText(t.Position, H - 6, "middle", t.Label)
+        }
+        @if (_geo.ZeroY is double z)
+        {
+            <line class="zero-line" x1="48" x2="@(W - 10)" y1="@Num(z)" y2="@Num(z)" />
+        }
+        @if (_geo.BandPath.Length > 0)
+        {
+            <path class="band" d="@_geo.BandPath" />
+        }
+        <path class="line" d="@_geo.LinePath" />
+    </svg>
+}
+else
+{
+    <p class="muted">No data to chart</p>
+}
+
+@code {
+    private const int W = 360;
+    private const int H = 190;
+    private ChartGeometry? _geo;
+
+    [Parameter] public IReadOnlyList<ChartPoint> Points { get; set; } = [];
+    [Parameter] public string AriaLabel { get; set; } = "Forecast chart";
+
+    protected override void OnParametersSet() => _geo = ChartGeometry.Build(Points, W, H);
+
+    private static string Num(double v) => v.ToString("F1", System.Globalization.CultureInfo.InvariantCulture);
+
+    private static MarkupString SvgText(double x, double y, string anchor, string label) =>
+        new($"<text x=\"{Num(x)}\" y=\"{Num(y)}\" text-anchor=\"{anchor}\">{System.Net.WebUtility.HtmlEncode(label)}</text>");
+}

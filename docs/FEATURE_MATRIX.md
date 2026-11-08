@@ -1,0 +1,21 @@
+# Feature matrix
+
+| Feature                           | API                                      | Web                        | Mobile                      | Tests                                                                            |
+| --------------------------------- | ---------------------------------------- | -------------------------- | --------------------------- | -------------------------------------------------------------------------------- |
+| Sign in, refresh, roles           | `/api/auth/*`                            | Login, guards, interceptor | Login, token refresh        | Backend (auth, lockout, rate limit), web (interceptor, guards), mobile (refresh) |
+| Cash summary and accounts         | `/cash/summary`, `/cash/accounts`        | Dashboard, Cash positions  | Home                        | Backend, web, mobile                                                             |
+| Liquidity ladder                  | `/cash/ladder`                           | Dashboard                  | Home                        | Backend                                                                          |
+| Cash forecast with intervals      | `/forecast`                              | Forecast, Dashboard        | Forecast                    | AI models, backend, web, mobile                                                  |
+| Forecast backtest                 | `/forecast/backtest`                     | Forecast, AI models        | none                        | AI models, backend                                                               |
+| FX rates, regimes                 | `/fx/rates`, `/fx/regimes`               | FX and hedging, AI models  | none                        | Backend, AI models                                                               |
+| FX exposure and recommendations   | `/fx/exposures`, `/fx/recommendations`   | FX and hedging             | FX                          | Backend, mobile                                                                  |
+| Hedge booking, MTM, effectiveness | `/fx/hedges`                             | FX and hedging             | none                        | Backend, market data and treasury unit tests                                     |
+| Cash at risk, FX VaR              | `/risk/metrics`                          | Risk                       | Home (coverage)             | Backend, risk unit tests                                                         |
+| Stress scenarios, limits          | `/risk/stress-scenarios`, `/risk/limits` | Risk, Dashboard            | Home, Alerts                | Backend, mobile                                                                  |
+| Intercompany netting              | `/inhouse-bank/*`                        | In-house bank              | none                        | Backend, treasury unit tests                                                     |
+| Debt and covenants                | `/debt/*`                                | Debt and covenants         | Alerts                      | Backend, mobile                                                                  |
+| Payments maker-checker            | `/payments/*`                            | Payments                   | Approvals (approve, reject) | Treasury unit tests, backend API, web page tests, mobile view model              |
+| Anomaly screening                 | `/anomalies/*`, payment creation         | Payments, AI models        | Alerts                      | AI models, backend                                                               |
+| Audit chain                       | `/audit/*`                               | Audit log                  | none                        | Infrastructure unit tests, backend                                               |
+| User administration               | `/api/auth/users`                        | none                       | none                        | Backend                                                                          |
+| Persistence across restarts       | snapshot file                            | n/a                        | n/a                         | Backend (restart test)                                                           |

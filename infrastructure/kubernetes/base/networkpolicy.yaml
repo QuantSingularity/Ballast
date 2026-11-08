@@ -1,0 +1,17 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: backend-only-from-web
+  namespace: ballast
+spec:
+  podSelector:
+    matchLabels:
+      app: ballast-backend
+  policyTypes: ["Ingress"]
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: ballast-web
+      ports:
+        - port: 8080

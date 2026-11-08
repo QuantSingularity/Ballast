@@ -1,0 +1,87 @@
+# The state store is a single-process JSON snapshot, so the backend runs exactly one replica with a Recreate
+# rollout. Scale out only after replacing BallastDb with a shared database.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ballast-backend
+  namespace: ballast
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: ballast-backend
+  template:
+    metadata:
+      labels:
+        app: ballast-backend
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1654
+        runAsGroup: 1654
+        fsGroup: 1654
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: backend
+          image: ghcr.io/quantsingularity/ballast-backend:latest
+          ports:
+            - containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: ballast-config
+            - secretRef:
+                name: ballast-secrets
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 20
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 250m
+              memory: 256Mi
+            limits:
+              cpu: "1"
+              memory: 768Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          volumeMounts:
+            - name: data
+              mountPath: /data
+            - name: tmp
+              mountPath: /tmp
+            - name: home
+              mountPath: /home/app
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: ballast-data
+        - name: tmp
+          emptyDir: {}
+        - name: home
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend
+  namespace: ballast
+spec:
+  selector:
+    app: ballast-backend
+  ports:
+    - port: 8080
+      targetPort: 8080

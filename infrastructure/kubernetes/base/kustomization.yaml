@@ -1,0 +1,11 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: ballast
+resources:
+  - namespace.yaml
+  - configmap.yaml
+  - pvc.yaml
+  - backend.yaml
+  - web.yaml
+  - ingress.yaml
+  - networkpolicy.yaml

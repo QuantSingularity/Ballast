@@ -1,0 +1,15 @@
+<div class="tile @Tone">
+    <div class="tile-label">@Label</div>
+    <div class="tile-value">@Value</div>
+    @if (!string.IsNullOrEmpty(Hint))
+    {
+        <div class="tile-hint">@Hint</div>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public string Label { get; set; } = "";
+    [Parameter, EditorRequired] public string Value { get; set; } = "";
+    [Parameter] public string? Hint { get; set; }
+    [Parameter] public string Tone { get; set; } = "neutral";
+}

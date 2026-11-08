@@ -1,0 +1,28 @@
+@page "/settings"
+@inherits ApiPageBase
+@inject MobileOptions Options
+
+<PageTitle>Settings | Ballast</PageTitle>
+<h1>Settings</h1>
+@if (Api.User is { } user)
+{
+    <section class="card">
+        <h2>Account</h2>
+        <div class="list-item"><span class="muted">Name</span><span>@user.Name</span></div>
+        <div class="list-item"><span class="muted">Email</span><span>@user.Email</span></div>
+        <div class="list-item"><span class="muted">Role</span><span>@user.Role</span></div>
+    </section>
+}
+<section class="card">
+    <h2>Server</h2>
+    <div class="list-item"><span class="muted">API address</span><span class="mono">@Options.ApiBaseAddress</span></div>
+</section>
+<button type="button" class="danger block" @onclick="SignOutAsync">Sign out</button>
+
+@code {
+    private async Task SignOutAsync()
+    {
+        await Api.LogoutAsync();
+        Nav.NavigateTo("login");
+    }
+}

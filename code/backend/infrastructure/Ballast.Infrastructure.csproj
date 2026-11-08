@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>Ballast.Infrastructure</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../core/Ballast.Core.csproj" />
+    <ProjectReference Include="../db/Ballast.Data.csproj" />
+  </ItemGroup>
+</Project>

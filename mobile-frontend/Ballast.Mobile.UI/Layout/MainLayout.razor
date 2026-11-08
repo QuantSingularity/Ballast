@@ -1,0 +1,23 @@
+@inherits LayoutComponentBase
+@inject ApiClient Api
+@inject NavigationManager Nav
+
+<div class="app">
+    <main class="content">@Body</main>
+    <nav class="tabbar" aria-label="Primary">
+        <NavLink href="" Match="NavLinkMatch.All">Home</NavLink>
+        <NavLink href="forecast">Forecast</NavLink>
+        <NavLink href="approvals">Approvals</NavLink>
+        <NavLink href="alerts">Alerts</NavLink>
+        <NavLink href="fx">FX</NavLink>
+        <NavLink href="settings">Settings</NavLink>
+    </nav>
+</div>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        await Api.InitializeAsync();
+        if (!Api.IsAuthenticated) Nav.NavigateTo("login");
+    }
+}

@@ -1,0 +1,67 @@
+@page "/alerts"
+@inherits ApiPageBase
+
+<PageTitle>Alerts | Ballast</PageTitle>
+<h1>Alerts</h1>
+@if (Error is not null)
+{
+    <div class="alert bad" role="alert">@Error</div>
+}
+@if (Loading)
+{
+    <p class="muted">Loading...</p>
+}
+else
+{
+    <section class="card">
+        <h2>Limit breaches and warnings</h2>
+        @foreach (var l in _limits)
+        {
+            <div class="list-item">
+                <StatusPill Status="@l.Status" />
+                <div>@l.Name<div class="muted">@l.Detail</div></div>
+            </div>
+        }
+        @if (_limits.Count == 0)
+        {
+            <p class="muted">All limits are within policy.</p>
+        }
+    </section>
+    <section class="card">
+        <h2>Covenants</h2>
+        @foreach (var c in _covenants)
+        {
+            <div class="list-item">
+                <StatusPill Status="@c.Status" />
+                <div>@c.Name<div class="muted">@c.FacilityName: headroom @Formatters.Pct((double)c.Headroom, 1)</div></div>
+            </div>
+        }
+    </section>
+    <section class="card">
+        <h2>AI screening flags</h2>
+        @foreach (var a in _anomalies)
+        {
+            <div class="list-item">
+                <StatusPill Status="Warning" Text="Flagged" />
+                <div>@a.Counterparty, @Formatters.Money(a.AmountBase, "USD")<div class="muted">@string.Join("; ", a.Reasons)</div></div>
+            </div>
+        }
+        @if (_anomalies.Count == 0)
+        {
+            <p class="muted">Nothing flagged.</p>
+        }
+    </section>
+}
+
+@code {
+    private List<LimitResult> _limits = [];
+    private List<CovenantResult> _covenants = [];
+    private List<AnomalyItem> _anomalies = [];
+
+    protected override Task OnInitializedAsync() => RunAsync(async () =>
+    {
+        _limits = (await Api.GetLimitsAsync()).Where(l => l.Status != "Ok").ToList();
+        _covenants = await Api.GetCovenantsAsync();
+        _anomalies = await Api.GetAnomaliesAsync();
+    });
+}
