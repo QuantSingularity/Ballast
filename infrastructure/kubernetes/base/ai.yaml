@@ -1,0 +1,72 @@
+# The model service keeps the fitted anomaly detector in process memory, so it runs exactly one replica. If it
+# restarts, the backend refits the detector automatically on the next screening request.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ballast-ai
+  namespace: ballast
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: ballast-ai
+  template:
+    metadata:
+      labels:
+        app: ballast-ai
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1654
+        runAsGroup: 1654
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: ai
+          image: ghcr.io/quantsingularity/ballast-ai:latest
+          ports:
+            - containerPort: 8000
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 20
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 250m
+              memory: 256Mi
+            limits:
+              cpu: "1"
+              memory: 768Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ai
+  namespace: ballast
+spec:
+  selector:
+    app: ballast-ai
+  ports:
+    - port: 8000
+      targetPort: 8000

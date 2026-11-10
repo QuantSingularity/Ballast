@@ -1,0 +1,10 @@
+"""Defaults shared by the models and the inference service."""
+
+SEASON_LENGTH = 7
+DEFAULT_SEED = 20260
+VALIDATION_DAYS = 28
+MIN_HISTORY_DAYS = 120
+DEFAULT_HORIZON_DAYS = 91
+DEFAULT_CONFIDENCE = 0.90
+DEFAULT_CALIBRATION_ORIGINS = 20
+HEDGE_RATIO_LEVELS: tuple[float, ...] = (0.0, 0.25, 0.5, 0.75, 1.0)

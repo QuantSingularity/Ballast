@@ -5,6 +5,5 @@
   <ItemGroup>
     <ProjectReference Include="../core/Ballast.Core.csproj" />
     <ProjectReference Include="../market_data/Ballast.MarketData.csproj" />
-    <ProjectReference Include="../../ai_models/Ballast.AiModels.csproj" />
   </ItemGroup>
 </Project>

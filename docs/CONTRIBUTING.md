@@ -4,13 +4,14 @@
 
 1. Branch from `develop`.
 2. Make the change with tests (see below).
-3. `./scripts/lint_code.sh --fix`, then `./scripts/run_tests.sh`. Both must pass.
+3. `./scripts/lint_code.sh --fix`, then `./scripts/run_tests.sh`. Both must pass. Python is formatted and linted with ruff.
 4. Open a pull request. CI runs the same scripts.
 
 ## Conventions
 
 - Business rules go in `Ballast.Treasury` or `Ballast.Risk` as pure functions with unit tests. Keep API services thin.
-- Models go in `Ballast.AiModels`, take explicit seeds, and need a test that checks behavior (not just that code runs).
+- Models go in `code/ai_models/ballast_ai` (Python, numpy), take explicit seeds, and need a pytest that checks behavior (not just that code runs). Vectorize anything that loops over a series: the first version of the forecaster would have needed minutes per backtest.
+- A new model capability is exposed by adding a schema and route in `ballast_ai/service`, a method on `AiServiceClient` in `code/backend/ai_client`, and a contract test on both sides.
 - Report model quality as measured, including when it is worse than hoped, in `docs/MODEL_RESULTS.md`.
 - No new NuGet or npm dependencies without a reason in the pull request. The backend currently needs none.
 - Do not weaken a security check to make a test pass. Fix the test or the code.
@@ -28,6 +29,7 @@
 
 ## Tests
 
-The .NET test projects are console programs that use `code/testkit/MiniTest.cs` (attribute `[Fact]`, `Assert.*`). Run one with a
-name filter: `dotnet code/backend/tests/bin/Release/net10.0/Ballast.Backend.Tests.dll Payment`. Web tests use Vitest through
-`ng test`.
+The .NET test projects are console programs that use `code/testkit/MiniTest.cs` (attribute `[Fact]`, `Assert.*`) and start the
+real Python model service through `AiServiceProcess`. Run one with a name filter:
+`dotnet code/backend/tests/bin/Release/net10.0/Ballast.Backend.Tests.dll Payment`. Python tests: `cd code/ai_models &&
+.venv/bin/python -m pytest -k forecast`. Web tests use Vitest through `ng test`.

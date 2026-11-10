@@ -11,6 +11,7 @@ directly). Invalid combinations fail at startup with an explicit message.
 | `BALLAST_ACCESS_TOKEN_MINUTES`    | `30`                                     | Access token lifetime                                                                                                                                                                            |
 | `BALLAST_REFRESH_TOKEN_DAYS`      | `7`                                      | Refresh token lifetime                                                                                                                                                                           |
 | `BALLAST_PASSWORD_ITERATIONS`     | `210000`                                 | PBKDF2-SHA256 iterations. At least 100000 in production-like environments                                                                                                                        |
+| `BALLAST_AI_SERVICE_URL`          | `http://localhost:8000`                  | Base URL of the Python model service. Must be an absolute http or https URL                                                                                                                      |
 | `BALLAST_DATA_PATH`               | unset                                    | Directory for `ballast-state.json`. Unset means state lives in memory only                                                                                                                       |
 | `BALLAST_CORS_ORIGINS`            | `http://localhost:4200`                  | Comma-separated allowed origins                                                                                                                                                                  |
 | `BALLAST_DUAL_APPROVAL_THRESHOLD` | `50000`                                  | Base-currency amount above which two approvals are required                                                                                                                                      |
@@ -23,9 +24,17 @@ directly). Invalid combinations fail at startup with an explicit message.
 | `BALLAST_DEMO_PASSWORD`           | `Ballast-Demo-2026!`                     | Password for seeded users. Production-like environments refuse to seed with the default                                                                                                          |
 | `BALLAST_AS_OF`                   | today (UTC)                              | Fixed "today" for deterministic data and tests (`yyyy-MM-dd`)                                                                                                                                    |
 
+## Scripts and tests
+
+| Variable              | Used by                | Description                                                                                                     |
+| --------------------- | ---------------------- | --------------------------------------------------------------------------------------------------------------- |
+| `BALLAST_AI_PORT`     | `scripts/start_dev.sh` | Port for the model service (default 8000)                                                                       |
+| `BALLAST_AI_PYTHON`   | .NET test projects     | Python interpreter used to start the model service in tests. Defaults to `code/ai_models/.venv`, then `python3` |
+| `BALLAST_TEST_AI_URL` | .NET test projects     | Use an already running model service instead of starting one                                                    |
+
 ## Startup safety checks
 
-- A missing, short or placeholder secret stops the API in every environment.
+- A missing, short or placeholder secret stops the API in every environment. So does a malformed `BALLAST_AI_SERVICE_URL`.
 - In `staging` and `production`, demo seeding is off by default; forcing it on with the default demo password is refused.
 - In `staging` and `production`, PBKDF2 iterations below 100000 are refused.
 - In a production-like environment the first account registered becomes Admin, so register it before exposing the API. After that, self-registration is closed unless `BALLAST_ALLOW_SELF_REGISTRATION=true`.

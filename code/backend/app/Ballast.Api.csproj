@@ -11,6 +11,6 @@
     <ProjectReference Include="../treasury/Ballast.Treasury.csproj" />
     <ProjectReference Include="../risk/Ballast.Risk.csproj" />
     <ProjectReference Include="../infrastructure/Ballast.Infrastructure.csproj" />
-    <ProjectReference Include="../../ai_models/Ballast.AiModels.csproj" />
+    <ProjectReference Include="../ai_client/Ballast.AiClient.csproj" />
   </ItemGroup>
 </Project>

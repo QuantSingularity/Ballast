@@ -26,3 +26,29 @@ require() {
 
 dotnet_major() { dotnet --version 2>/dev/null | cut -d. -f1; }
 node_major()   { node --version 2>/dev/null | sed 's/^v//' | cut -d. -f1; }
+
+AI_DIR="$REPO_ROOT/code/ai_models"
+export AI_DIR
+
+# Interpreter for the model service: the project's virtualenv if present, else python3 on the PATH.
+ai_python() {
+  if [ -x "$AI_DIR/.venv/bin/python" ]; then echo "$AI_DIR/.venv/bin/python"
+  elif have python3; then echo python3
+  else echo ""; fi
+}
+python_ok() { "$1" -c 'import sys; sys.exit(0 if sys.version_info >= (3, 11) else 1)' >/dev/null 2>&1; }
+ai_deps_ok() { "$1" -c 'import numpy, fastapi, uvicorn' >/dev/null 2>&1; }
+
+# Starts the model service in the background and waits for /health. Sets AI_PID.
+start_ai_service() {
+  local py="$1" port="$2"
+  (cd "$AI_DIR" && exec "$py" -m ballast_ai.service --host 127.0.0.1 --port "$port") &
+  AI_PID=$!
+  for _ in $(seq 1 100); do
+    curl -fsS "http://127.0.0.1:${port}/health" >/dev/null 2>&1 && return 0
+    kill -0 "$AI_PID" 2>/dev/null || { fail "model service exited during startup"; return 1; }
+    sleep 0.3
+  done
+  fail "model service did not become healthy on port ${port}"
+  return 1
+}

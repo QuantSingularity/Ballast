@@ -3,9 +3,7 @@ import { statusTone } from '../utils/format';
 
 @Component({
   selector: 'app-status-badge',
-  template: `<span class="badge" [class]="'badge ' + tone()">{{
-    label()
-  }}</span>`,
+  template: `<span class="badge" [class]="'badge ' + tone()">{{ label() }}</span>`,
 })
 export class StatusBadge {
   readonly status = input.required<string>();

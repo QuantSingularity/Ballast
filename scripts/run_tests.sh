@@ -18,6 +18,12 @@ while [ $# -gt 0 ]; do
 done
 
 require dotnet "Install the .NET 10 SDK"
+py="$(ai_python)"
+if [ -z "$py" ] || ! python_ok "$py" || ! ai_deps_ok "$py"; then
+  fail "Python 3.11+ with numpy, fastapi and uvicorn is required. Run scripts/setup_environment.sh"
+  exit 1
+fi
+export BALLAST_AI_PYTHON="$py"
 results=()
 status=0
 
@@ -34,8 +40,9 @@ run_dotnet_suite() {
   fi
 }
 
-run_dotnet_suite "AI models" code/ai_models/tests/Ballast.AiModels.Tests.csproj
-run_dotnet_suite "Backend (unit and API integration)" code/backend/tests/Ballast.Backend.Tests.csproj
+header "AI models (pytest)"
+if (cd "$AI_DIR" && "$py" -m pytest ${filter:+-k "$filter"}); then results+=("PASS  AI models (Python)"); else results+=("FAIL  AI models (Python)"); status=1; fi
+run_dotnet_suite "Backend (unit and API integration, real model service)" code/backend/tests/Ballast.Backend.Tests.csproj
 if [ "$skip_mobile" -eq 0 ]; then
   run_dotnet_suite "Mobile UI (client, view models, pages)" mobile-frontend/Ballast.Mobile.Tests/Ballast.Mobile.Tests.csproj
 fi

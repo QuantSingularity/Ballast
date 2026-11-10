@@ -20,6 +20,7 @@ public sealed class BallastSettings
     public decimal MinLiquidityBuffer { get; init; } = 10_000_000m;
     public int AuthRateLimitPerMinute { get; init; } = 30;
     public bool TrustProxy { get; init; }
+    public string AiServiceUrl { get; init; } = "http://localhost:8000";
     public string DemoPassword { get; init; } = DefaultDemoPassword;
 
     public bool SeedDemoData => SeedDemoDataOverride ?? !IsProductionLike;
@@ -54,6 +55,7 @@ public sealed class BallastSettings
             MinLiquidityBuffer = Parse(get("BALLAST_MIN_LIQUIDITY_BUFFER"), defaults.MinLiquidityBuffer, decimal.Parse),
             AuthRateLimitPerMinute = Parse(get("BALLAST_AUTH_RATE_LIMIT"), defaults.AuthRateLimitPerMinute, int.Parse),
             TrustProxy = Parse(get("BALLAST_TRUST_PROXY"), false, bool.Parse),
+            AiServiceUrl = (get("BALLAST_AI_SERVICE_URL") ?? defaults.AiServiceUrl).TrimEnd('/'),
             AllowSelfRegistrationOverride = Parse<bool?>(get("BALLAST_ALLOW_SELF_REGISTRATION"), null, v => bool.Parse(v)),
             DemoPassword = get("BALLAST_DEMO_PASSWORD") ?? defaults.DemoPassword,
             SeedDemoDataOverride = Parse<bool?>(get("BALLAST_SEED_DEMO_DATA"), null, v => bool.Parse(v))
@@ -62,6 +64,8 @@ public sealed class BallastSettings
 
     public void Validate()
     {
+        if (!Uri.TryCreate(AiServiceUrl, UriKind.Absolute, out var ai) || ai.Scheme is not ("http" or "https"))
+            throw new InvalidOperationException($"BALLAST_AI_SERVICE_URL must be an absolute http or https URL (got '{AiServiceUrl}')");
         if (!Currencies.IsSupported(BaseCurrency))
             throw new InvalidOperationException($"Unsupported base currency '{BaseCurrency}'");
         if (IsProductionLike)

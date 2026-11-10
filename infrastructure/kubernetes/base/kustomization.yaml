@@ -5,6 +5,7 @@ resources:
   - namespace.yaml
   - configmap.yaml
   - pvc.yaml
+  - ai.yaml
   - backend.yaml
   - web.yaml
   - ingress.yaml

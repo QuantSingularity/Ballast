@@ -15,6 +15,18 @@ for sln in code/Ballast.slnx mobile-frontend/Ballast.Mobile.slnx; do
   if [ "$fix" -eq 1 ]; then dotnet format "$sln" --no-restore; else dotnet format "$sln" --verify-no-changes --no-restore || status=1; fi
 done
 
+header "Python (ruff)"
+py="$(ai_python)"
+if [ -n "$py" ] && "$py" -m ruff --version >/dev/null 2>&1; then
+  if [ "$fix" -eq 1 ]; then
+    (cd "$AI_DIR" && "$py" -m ruff check --fix . && "$py" -m ruff format .)
+  else
+    (cd "$AI_DIR" && "$py" -m ruff check . && "$py" -m ruff format --check .) || status=1
+  fi
+else
+  warn "ruff not installed, run scripts/setup_environment.sh"
+fi
+
 header "Web (prettier)"
 if [ -d web-frontend/node_modules ]; then
   if [ "$fix" -eq 1 ]; then
@@ -35,9 +47,11 @@ fi
 
 header "Text policy"
 if grep -rIl --exclude-dir=node_modules --exclude-dir=bin --exclude-dir=obj --exclude-dir=.angular --exclude-dir=dist --exclude-dir=.git \
+     --exclude-dir=.venv --exclude-dir=__pycache__ --exclude-dir=.ruff_cache --exclude-dir=.pytest_cache \
      --exclude=package-lock.json -e $'\xe2\x80\x94' . >/dev/null 2>&1; then
   fail "em dashes found:"
   grep -rIn --exclude-dir=node_modules --exclude-dir=bin --exclude-dir=obj --exclude-dir=.angular --exclude-dir=dist --exclude-dir=.git \
+     --exclude-dir=.venv --exclude-dir=__pycache__ --exclude-dir=.ruff_cache --exclude-dir=.pytest_cache \
      --exclude=package-lock.json -e $'\xe2\x80\x94' . | head -10
   status=1
 else

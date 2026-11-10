@@ -1,7 +1,7 @@
 using Ballast.Api.Dependencies;
 using Ballast.Api.Schemas;
 using Ballast.Api.Services;
-using Ballast.AiModels.Research;
+using Ballast.AiClient;
 using Ballast.Core;
 using Ballast.Core.Domain;
 using Ballast.Data;
@@ -153,9 +153,13 @@ public static class AnomalyEndpoints
             var accounts = db.Accounts.All().ToDictionary(a => a.Id);
             var items = new List<AnomalyItemDto>();
             if (!models.DetectorAvailable) return items;
-            foreach (var t in db.Transactions.Where(t => t.Amount < 0 && t.Date >= from && accounts.ContainsKey(t.AccountId)))
+            var recent = db.Transactions.Where(t => t.Amount < 0 && t.Date >= from && accounts.ContainsKey(t.AccountId)).ToList();
+            var assessed = models.AssessMany(recent.Select(t => new AssessItem(t.AccountId, t.Counterparty,
+                (double)Math.Abs(FxMath.Convert(rates, t.Amount, t.Currency, settings.BaseCurrency)), t.Date)).ToList());
+            for (int i = 0; i < recent.Count; i++)
             {
-                var a = models.Assess(t.AccountId, t.Counterparty, Math.Abs(t.Amount), t.Currency, t.Date);
+                var t = recent[i];
+                var a = assessed[i];
                 if (!a.Flagged) continue;
                 items.Add(new AnomalyItemDto("transaction", t.Id, t.AccountId, t.Counterparty,
                     Math.Round(Math.Abs(FxMath.Convert(rates, t.Amount, t.Currency, settings.BaseCurrency)), 2), t.Date,
@@ -188,7 +192,8 @@ public static class AiEndpoints
         g.MapGet("/models", (ModelHub models, FxService fx, ForecastService forecasts) =>
         {
             var backtest = forecasts.Backtest(forecasts.ResolveScope("all"), 28);
-            return new AiOverviewDto(ModelCatalog.Models, Math.Round(models.Detector.Threshold, 4), models.Agent.Episodes,
+            var status = models.Models();
+            return new AiOverviewDto(status.Models, Math.Round(models.AnomalyThreshold, 4), status.Hedging.Episodes,
                 fx.Regimes(), backtest);
         });
     }
@@ -199,7 +204,14 @@ public static class MetaEndpoints
     public static void Map(WebApplication app, BallastSettings settings)
     {
         app.MapGet("/", () => new { name = "Ballast", description = "Treasury and liquidity management API", version = "1.0.0", docs = "/api/v1/meta/endpoints" });
-        app.MapGet("/health", () => new { status = "ok", environment = settings.Environment, asOf = settings.Today, baseCurrency = settings.BaseCurrency });
+        app.MapGet("/health", (AiServiceClient ai) => new
+        {
+            status = "ok",
+            environment = settings.Environment,
+            asOf = settings.Today,
+            baseCurrency = settings.BaseCurrency,
+            aiService = ai.IsHealthy(TimeSpan.FromSeconds(1)) ? "up" : "down"
+        });
         app.MapGet("/api/v1/meta/endpoints", (EndpointDataSource source) =>
             source.Endpoints.OfType<RouteEndpoint>()
                 .Select(e => new

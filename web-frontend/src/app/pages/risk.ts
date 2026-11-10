@@ -6,13 +6,7 @@ import { PageHeader } from '../components/page-header';
 import { StatusBadge } from '../components/status-badge';
 import { ApiService } from '../services/api.service';
 import { LimitResult, RiskMetrics, StressResult } from '../types/models';
-import {
-  errorMessage,
-  formatCompact,
-  formatMoney,
-  formatNumber,
-  formatPct,
-} from '../utils/format';
+import { errorMessage, formatCompact, formatMoney, formatNumber, formatPct } from '../utils/format';
 
 @Component({
   selector: 'app-risk',
@@ -40,11 +34,7 @@ import {
             [value]="m.liquidityCoverageRatio.toFixed(1) + 'x'"
             hint="vs trailing 30 day outflows"
             [tone]="
-              m.liquidityCoverageRatio < 1
-                ? 'bad'
-                : m.liquidityCoverageRatio < 2
-                  ? 'warn'
-                  : 'good'
+              m.liquidityCoverageRatio < 1 ? 'bad' : m.liquidityCoverageRatio < 2 ? 'warn' : 'good'
             "
           />
           <app-kpi-card
@@ -76,19 +66,12 @@ import {
                   </tr>
                 </thead>
                 <tbody>
-                  @for (
-                    c of m.cashAtRisk;
-                    track c.horizonDays + '-' + c.confidence
-                  ) {
+                  @for (c of m.cashAtRisk; track c.horizonDays + '-' + c.confidence) {
                     <tr>
                       <td>{{ c.horizonDays }} days</td>
                       <td class="num">{{ pct(c.confidence) }}</td>
-                      <td class="num">
-                        {{ money(c.cashAtRisk, m.baseCurrency) }}
-                      </td>
-                      <td class="num">
-                        {{ money(c.expectedShortfall, m.baseCurrency) }}
-                      </td>
+                      <td class="num">{{ money(c.cashAtRisk, m.baseCurrency) }}</td>
+                      <td class="num">{{ money(c.expectedShortfall, m.baseCurrency) }}</td>
                     </tr>
                   }
                 </tbody>
@@ -114,13 +97,9 @@ import {
                   @for (v of m.fxVar; track v.currency) {
                     <tr>
                       <td>{{ v.currency }}</td>
-                      <td class="num">
-                        {{ money(v.exposureBase, m.baseCurrency) }}
-                      </td>
+                      <td class="num">{{ money(v.exposureBase, m.baseCurrency) }}</td>
                       <td class="num">{{ money(v.var95, m.baseCurrency) }}</td>
-                      <td class="num">
-                        {{ money(v.expectedShortfall95, m.baseCurrency) }}
-                      </td>
+                      <td class="num">{{ money(v.expectedShortfall95, m.baseCurrency) }}</td>
                       <td class="num">{{ pct(v.highVolProbability) }}</td>
                     </tr>
                   }
@@ -147,9 +126,7 @@ import {
             </div>
           </section>
           <section class="card flush">
-            <div class="card-title" style="padding: 16px 18px 0">
-              <h2>Policy limits</h2>
-            </div>
+            <div class="card-title" style="padding: 16px 18px 0"><h2>Policy limits</h2></div>
             <div class="scroll">
               <table>
                 <tbody>
@@ -194,12 +171,7 @@ export class RiskPage {
       label: r.name,
       share: r.coverageRatioAfter / max,
       display: `${formatNumber(r.coverageRatioAfter, 1)}x, ${formatCompact(r.liquidityAfterBase)}`,
-      tone:
-        r.coverageRatioAfter < 1
-          ? 'bad'
-          : r.coverageRatioAfter < 2
-            ? 'warn'
-            : 'good',
+      tone: r.coverageRatioAfter < 1 ? 'bad' : r.coverageRatioAfter < 2 ? 'warn' : 'good',
     }));
   });
 

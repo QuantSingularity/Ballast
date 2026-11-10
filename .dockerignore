@@ -2,6 +2,10 @@
 **/obj
 **/node_modules
 **/.angular
+**/.venv
+**/__pycache__
+**/.pytest_cache
+**/.ruff_cache
 web-frontend/dist
 mobile-frontend
 .git

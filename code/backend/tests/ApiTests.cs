@@ -558,3 +558,42 @@ public class PersistenceTests
         Assert.Equal(HttpStatusCode.OK, ok.StatusCode);
     }
 }
+
+public class ModelServiceDependencyTests
+{
+    [Fact]
+    public async Task Health_ReportsTheModelServiceAsUp()
+    {
+        var s = await Shared.Server;
+        var (_, body) = await s.GetAsync("/health", null);
+        Assert.Equal("up", body!["aiService"]!.GetValue<string>());
+    }
+
+    [Fact]
+    public async Task WhenTheModelServiceIsDown_AiEndpointsReturn503ButTheRestOfTheApiWorks()
+    {
+        var settings = new Ballast.Core.BallastSettings
+        {
+            Environment = "development",
+            JwtSecret = TestSettings.Secret,
+            PasswordIterations = 1000,
+            AsOfDate = TestSettings.AsOf,
+            AiServiceUrl = "http://127.0.0.1:1"
+        };
+        await using var s = await ApiServer.StartAsync(settings);
+        var (health, body) = await s.GetAsync("/health", null);
+        Assert.Equal(200, health);
+        Assert.Equal("ok", body!["status"]!.GetValue<string>());
+        Assert.Equal("down", body["aiService"]!.GetValue<string>());
+
+        var (forecast, error) = await s.GetAsync("/api/v1/forecast?horizonDays=7");
+        Assert.Equal(503, forecast);
+        Assert.Equal("ai_unavailable", error!["code"]!.GetValue<string>());
+        Assert.Contains("AI model service", error["message"]!.GetValue<string>());
+
+        Assert.Equal(200, (await s.GetAsync("/api/v1/cash/summary")).Status);
+        Assert.Equal(200, (await s.GetAsync("/api/v1/debt/covenants")).Status);
+        Assert.Equal(200, (await s.GetAsync("/api/v1/inhouse-bank/netting/preview")).Status);
+        Assert.Equal(200, (await s.GetAsync("/api/v1/payments")).Status);
+    }
+}

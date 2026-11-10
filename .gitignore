@@ -11,6 +11,13 @@ node_modules/
 web-frontend/dist/
 web-frontend/.angular/
 web-frontend/coverage/
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
 # Local state and secrets
 .env
 *.local

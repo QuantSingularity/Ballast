@@ -21,6 +21,22 @@ fi
 ok "Node.js $(node --version)"
 require npm "npm ships with Node.js"
 
+require python3 "Install Python 3.11 or newer"
+if ! python_ok python3; then
+  fail "Python 3.11 or newer is required (found $(python3 --version 2>&1))"
+  exit 1
+fi
+ok "$(python3 --version)"
+
+header "Model service (Python)"
+if [ ! -x "$AI_DIR/.venv/bin/python" ]; then
+  python3 -m venv "$AI_DIR/.venv"
+  ok "created code/ai_models/.venv"
+fi
+"$AI_DIR/.venv/bin/python" -m pip install --quiet --upgrade pip
+"$AI_DIR/.venv/bin/python" -m pip install --quiet -r "$AI_DIR/requirements-dev.txt"
+ok "Python packages installed"
+
 header "Web dependencies"
 (cd web-frontend && npm ci --no-audit --no-fund)
 ok "npm packages installed"

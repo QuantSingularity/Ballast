@@ -18,10 +18,7 @@ import { errorMessage, formatMoney, todayPlus, valueOf } from '../utils/format';
       >
         <label
           >Status
-          <select
-            [value]="status()"
-            (change)="status.set(value($event)); reload()"
-          >
+          <select [value]="status()" (change)="status.set(value($event)); reload()">
             <option value="">All</option>
             @for (s of statuses; track s) {
               <option [value]="s">{{ s }}</option>
@@ -43,14 +40,9 @@ import { errorMessage, formatMoney, todayPlus, valueOf } from '../utils/format';
             <div class="form-grid">
               <label
                 >Debit account
-                <select
-                  [value]="form.accountId()"
-                  (change)="form.accountId.set(value($event))"
-                >
+                <select [value]="form.accountId()" (change)="form.accountId.set(value($event))">
                   @for (a of accounts(); track a.id) {
-                    <option [value]="a.id">
-                      {{ a.id }} ({{ a.currency }}, {{ a.bank }})
-                    </option>
+                    <option [value]="a.id">{{ a.id }} ({{ a.currency }}, {{ a.bank }})</option>
                   }
                 </select>
               </label>
@@ -92,18 +84,10 @@ import { errorMessage, formatMoney, todayPlus, valueOf } from '../utils/format';
                 />
               </label>
               <div class="row">
-                <button
-                  type="button"
-                  [disabled]="busy() || !canSubmitForm()"
-                  (click)="assess()"
-                >
+                <button type="button" [disabled]="busy() || !canSubmitForm()" (click)="assess()">
                   Screen
                 </button>
-                <button
-                  class="primary"
-                  type="submit"
-                  [disabled]="busy() || !canSubmitForm()"
-                >
+                <button class="primary" type="submit" [disabled]="busy() || !canSubmitForm()">
                   Create draft
                 </button>
               </div>
@@ -116,11 +100,8 @@ import { errorMessage, formatMoney, todayPlus, valueOf } from '../utils/format';
               style="margin: 14px 0 0"
               role="status"
             >
-              <strong>{{
-                a.flagged ? 'Flagged for review' : 'Passes screening'
-              }}</strong>
-              (anomaly score {{ a.score.toFixed(2) }}, baseline
-              {{ a.threshold.toFixed(2) }})
+              <strong>{{ a.flagged ? 'Flagged for review' : 'Passes screening' }}</strong> (anomaly
+              score {{ a.score.toFixed(2) }}, baseline {{ a.threshold.toFixed(2) }})
               @if (a.reasons.length > 0) {
                 <ul class="flags">
                   @for (r of a.reasons; track r) {
@@ -168,9 +149,7 @@ import { errorMessage, formatMoney, todayPlus, valueOf } from '../utils/format';
                         </ul>
                       }
                       @if (p.rejectionReason) {
-                        <div class="muted">
-                          Rejected: {{ p.rejectionReason }}
-                        </div>
+                        <div class="muted">Rejected: {{ p.rejectionReason }}</div>
                       }
                     </td>
                     <td class="num">{{ money(p.amount, p.currency, 2) }}</td>
@@ -262,13 +241,7 @@ import { errorMessage, formatMoney, todayPlus, valueOf } from '../utils/format';
 export class PaymentsPage {
   private readonly api = inject(ApiService);
   protected readonly auth = inject(AuthService);
-  protected readonly statuses = [
-    'Draft',
-    'PendingApproval',
-    'Approved',
-    'Released',
-    'Rejected',
-  ];
+  protected readonly statuses = ['Draft', 'PendingApproval', 'Approved', 'Released', 'Rejected'];
   protected readonly status = signal('');
   protected readonly loading = signal(true);
   protected readonly busy = signal(false);
@@ -374,9 +347,7 @@ export class PaymentsPage {
 
   protected async act(p: Payment, action: PaymentAction): Promise<void> {
     await this.run(async () => {
-      const updated = await firstValueFrom(
-        this.api.paymentAction(p.id, action),
-      );
+      const updated = await firstValueFrom(this.api.paymentAction(p.id, action));
       this.notice.set(`${updated.id} is now ${updated.status}`);
     });
   }
@@ -388,18 +359,13 @@ export class PaymentsPage {
 
   protected async confirmReject(p: Payment): Promise<void> {
     await this.run(async () => {
-      await firstValueFrom(
-        this.api.paymentAction(p.id, 'reject', this.reason().trim()),
-      );
+      await firstValueFrom(this.api.paymentAction(p.id, 'reject', this.reason().trim()));
       this.notice.set(`${p.id} rejected`);
       this.rejecting.set(null);
     });
   }
 
-  private async run(
-    action: () => Promise<void>,
-    refresh = true,
-  ): Promise<void> {
+  private async run(action: () => Promise<void>, refresh = true): Promise<void> {
     this.busy.set(true);
     this.error.set(null);
     this.notice.set(null);
@@ -415,9 +381,7 @@ export class PaymentsPage {
 
   private async refresh(): Promise<void> {
     try {
-      this.payments.set(
-        await firstValueFrom(this.api.payments(this.status() || undefined)),
-      );
+      this.payments.set(await firstValueFrom(this.api.payments(this.status() || undefined)));
     } catch (e) {
       this.error.set(errorMessage(e));
     } finally {
@@ -430,9 +394,7 @@ export class PaymentsPage {
       const accounts = await firstValueFrom(this.api.accounts());
       this.accounts.set(accounts);
       this.form.accountId.set(
-        accounts.find((a) => a.kind === 'Operating')?.id ??
-          accounts[0]?.id ??
-          '',
+        accounts.find((a) => a.kind === 'Operating')?.id ?? accounts[0]?.id ?? '',
       );
     } catch (e) {
       this.error.set(errorMessage(e));

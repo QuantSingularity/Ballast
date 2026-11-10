@@ -1,6 +1,14 @@
 name: ballast
 
 services:
+  ai:
+    build:
+      context: ..
+      dockerfile: infrastructure/docker/Dockerfile.ai
+    restart: unless-stopped
+    expose:
+      - "8000"
+
   backend:
     build:
       context: ..
@@ -11,7 +19,10 @@ services:
       BALLAST_BASE_CURRENCY: ${BALLAST_BASE_CURRENCY:-USD}
       BALLAST_CORS_ORIGINS: ${BALLAST_CORS_ORIGINS:-http://localhost:4200}
       BALLAST_DATA_PATH: /data
+      BALLAST_AI_SERVICE_URL: http://ai:8000
       BALLAST_TRUST_PROXY: "true"
+    depends_on:
+      - ai
     volumes:
       - ballast-data:/data
     restart: unless-stopped

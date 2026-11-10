@@ -21,6 +21,16 @@ header "Backend and AI models"
 dotnet build code/Ballast.slnx -c Release --nologo -v quiet
 ok "code/Ballast.slnx"
 
+header "Model service (Python)"
+py="$(ai_python)"
+if [ -n "$py" ] && ai_deps_ok "$py"; then
+  "$py" -m compileall -q "$AI_DIR/ballast_ai"
+  "$py" -c "import sys; sys.path.insert(0, '$AI_DIR'); from ballast_ai.service import create_app; create_app()"
+  ok "code/ai_models imports and the service app builds"
+else
+  warn "Python dependencies missing, run scripts/setup_environment.sh (skipping model service check)"
+fi
+
 header "Mobile UI library and tests"
 dotnet build mobile-frontend/Ballast.Mobile.slnx -c Release --nologo -v quiet
 ok "mobile-frontend/Ballast.Mobile.slnx (the MAUI host is built separately, see mobile-frontend/Ballast.Mobile.App/README.md)"
@@ -36,4 +46,7 @@ if [ "$publish" -eq 1 ]; then
   header "Publish API"
   dotnet publish code/backend/app/Ballast.Api.csproj -c Release -o dist/api --nologo -v quiet
   ok "dist/api"
+  mkdir -p dist/ai_models && cp -r "$AI_DIR/ballast_ai" "$AI_DIR/requirements.txt" dist/ai_models/
+  find dist/ai_models -name __pycache__ -type d -prune -exec rm -rf {} +
+  ok "dist/ai_models"
 fi

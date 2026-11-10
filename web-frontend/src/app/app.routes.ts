@@ -18,8 +18,7 @@ export const routes: Routes = [
       {
         path: 'dashboard',
         title: 'Dashboard | Ballast',
-        loadComponent: () =>
-          import('./pages/dashboard').then((m) => m.DashboardPage),
+        loadComponent: () => import('./pages/dashboard').then((m) => m.DashboardPage),
       },
       {
         path: 'cash',
@@ -29,8 +28,7 @@ export const routes: Routes = [
       {
         path: 'forecast',
         title: 'Forecast | Ballast',
-        loadComponent: () =>
-          import('./pages/forecast').then((m) => m.ForecastPage),
+        loadComponent: () => import('./pages/forecast').then((m) => m.ForecastPage),
       },
       {
         path: 'fx',
@@ -45,8 +43,7 @@ export const routes: Routes = [
       {
         path: 'inhouse-bank',
         title: 'In-house bank | Ballast',
-        loadComponent: () =>
-          import('./pages/inhouse-bank').then((m) => m.InHouseBankPage),
+        loadComponent: () => import('./pages/inhouse-bank').then((m) => m.InHouseBankPage),
       },
       {
         path: 'debt',
@@ -56,14 +53,12 @@ export const routes: Routes = [
       {
         path: 'payments',
         title: 'Payments | Ballast',
-        loadComponent: () =>
-          import('./pages/payments').then((m) => m.PaymentsPage),
+        loadComponent: () => import('./pages/payments').then((m) => m.PaymentsPage),
       },
       {
         path: 'ai',
         title: 'AI models | Ballast',
-        loadComponent: () =>
-          import('./pages/ai-models').then((m) => m.AiModelsPage),
+        loadComponent: () => import('./pages/ai-models').then((m) => m.AiModelsPage),
       },
       {
         path: 'audit',

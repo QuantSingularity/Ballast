@@ -16,10 +16,21 @@ if [ -z "${BALLAST_SECRET_KEY:-}" ]; then
 fi
 export BALLAST_ENV="${BALLAST_ENV:-development}"
 export ASPNETCORE_URLS="${ASPNETCORE_URLS:-http://localhost:5000}"
+ai_port="${BALLAST_AI_PORT:-8000}"
+export BALLAST_AI_SERVICE_URL="${BALLAST_AI_SERVICE_URL:-http://127.0.0.1:${ai_port}}"
 
 pids=()
 cleanup() { for p in "${pids[@]}"; do kill "$p" 2>/dev/null || true; done; }
 trap cleanup EXIT INT TERM
+
+py="$(ai_python)"
+if [ -z "$py" ] || ! ai_deps_ok "$py"; then
+  fail "Python model service dependencies missing. Run scripts/setup_environment.sh"
+  exit 1
+fi
+header "Model service on $BALLAST_AI_SERVICE_URL"
+start_ai_service "$py" "$ai_port"
+pids+=("$AI_PID")
 
 header "API on $ASPNETCORE_URLS"
 dotnet run --project code/backend/app/Ballast.Api.csproj --no-launch-profile &

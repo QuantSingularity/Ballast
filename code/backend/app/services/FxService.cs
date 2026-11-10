@@ -30,14 +30,14 @@ public sealed class FxService(
     {
         var lines = Exposures().Lines;
         var pHigh = lines.Select(l => l.Currency).Distinct().ToDictionary(c => c, models.HighVolProbability);
-        return new HedgeAdvisor(models.Agent).Recommend(lines, pHigh);
+        return new HedgeAdvisor(models.AgentRatios).Recommend(lines, pHigh);
     }
 
     public IReadOnlyList<HmmStatusDto> Regimes() =>
         Currencies.All.Where(c => c != "USD").Select(c =>
         {
             var h = models.Hmm(c);
-            return new HmmStatusDto(c, h.Sigmas, h.Means, models.HighVolProbability(c), h.Transition[0, 0], h.Transition[1, 1]);
+            return new HmmStatusDto(c, h.Sigmas, h.Means, models.HighVolProbability(c), h.Transition[0][0], h.Transition[1][1]);
         }).ToList();
 
     public IReadOnlyList<HedgeDto> Hedges()

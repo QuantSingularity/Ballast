@@ -25,9 +25,7 @@ import { errorMessage } from '../utils/format';
             "
           />
         }
-        <button type="button" [disabled]="busy()" (click)="verify()">
-          Verify chain
-        </button>
+        <button type="button" [disabled]="busy()" (click)="verify()">Verify chain</button>
       </app-page-header>
       @if (error()) {
         <div class="alert bad" role="alert">{{ error() }}</div>

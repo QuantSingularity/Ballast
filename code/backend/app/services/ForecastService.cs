@@ -1,6 +1,5 @@
 using System.Collections.Concurrent;
-using Ballast.AiModels.Forecasting;
-using Ballast.AiModels.Research;
+using Ballast.AiClient;
 using Ballast.Core;
 using Ballast.Core.Domain;
 using Ballast.Data;
@@ -10,7 +9,7 @@ namespace Ballast.Api.Services;
 
 public sealed record ForecastScope(string Key, IReadOnlyList<string> AccountIds, string? NativeCurrency, string OutputCurrency);
 
-public sealed class ForecastService(BallastDb db, IRateProvider rates, BallastSettings settings)
+public sealed class ForecastService(BallastDb db, IRateProvider rates, BallastSettings settings, AiServiceClient ai)
 {
     private readonly ConcurrentDictionary<string, Lazy<ForecastResult>> _forecasts = new();
     private readonly ConcurrentDictionary<string, Lazy<BacktestMetrics>> _backtests = new();
@@ -89,7 +88,7 @@ public sealed class ForecastService(BallastDb db, IRateProvider rates, BallastSe
         if (scope.AccountIds.Count == 0) throw new ConflictException("No cash history is available to forecast");
         var key = $"{scope.Key}|{horizonDays}|{confidence:F3}|{origins}";
         return _forecasts.GetOrAdd(key, _ => new Lazy<ForecastResult>(() =>
-            EnsembleCashForecaster.Forecast(Series(scope), HistoryStart, horizonDays, confidence, origins))).Value;
+            ai.Forecast(Series(scope), HistoryStart, horizonDays, confidence, origins))).Value;
     }
 
     public BacktestMetrics Backtest(ForecastScope scope, int horizonDays)
@@ -97,6 +96,6 @@ public sealed class ForecastService(BallastDb db, IRateProvider rates, BallastSe
         if (horizonDays is < 7 or > 91) throw new ValidationException("horizon must be between 7 and 91");
         if (scope.AccountIds.Count == 0) throw new ConflictException("No cash history is available to backtest");
         return _backtests.GetOrAdd($"{scope.Key}|{horizonDays}", _ => new Lazy<BacktestMetrics>(() =>
-            ForecastBacktest.Run(Series(scope), HistoryStart, horizonDays, 8, 20, 0.9))).Value;
+            ai.Backtest(Series(scope), HistoryStart, horizonDays, 8, 20, 0.9))).Value;
     }
 }

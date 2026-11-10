@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using System.Text.Json.Nodes;
 using Ballast.Api;
 using Ballast.Core;
+using Ballast.TestKit;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -29,7 +30,8 @@ public static class TestSettings
         AsOfDate = AsOf,
         DataPath = dataPath,
         AuthRateLimitPerMinute = authRateLimit,
-        DemoPassword = DemoPassword
+        DemoPassword = DemoPassword,
+        AiServiceUrl = AiServiceProcess.Url
     };
 }
 

@@ -52,7 +52,8 @@ public sealed class ApiServer : IAsyncDisposable
             JwtSecret = "mobile-test-secret-key-0123456789-abcdef",
             PasswordIterations = 1000,
             AsOfDate = new DateOnly(2026, 11, 5),
-            AuthRateLimitPerMinute = 10_000
+            AuthRateLimitPerMinute = 10_000,
+            AiServiceUrl = Ballast.TestKit.AiServiceProcess.Url
         };
         var app = Ballast.Api.ApiHost.Build(["--urls", "http://127.0.0.1:0", "--Logging:LogLevel:Default=Warning"], settings);
         await app.StartAsync();

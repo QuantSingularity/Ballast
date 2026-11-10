@@ -9,6 +9,7 @@
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <Compile Include="../../code/testkit/MiniTest.cs" Link="MiniTest.cs" />
+    <Compile Include="../../code/testkit/AiServiceProcess.cs" Link="AiServiceProcess.cs" />
     <ProjectReference Include="../Ballast.Mobile.UI/Ballast.Mobile.UI.csproj" />
     <ProjectReference Include="../../code/backend/app/Ballast.Api.csproj" />
     <ProjectReference Include="../../code/backend/core/Ballast.Core.csproj" />

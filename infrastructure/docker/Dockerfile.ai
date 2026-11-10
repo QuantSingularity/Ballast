@@ -1,0 +1,16 @@
+# Build context: repository root
+#   docker build -f infrastructure/docker/Dockerfile.ai -t ballast-ai .
+FROM python:3.12-slim
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1
+WORKDIR /app
+COPY code/ai_models/requirements.txt ./
+RUN pip install -r requirements.txt
+COPY code/ai_models/ballast_ai ./ballast_ai
+RUN useradd --system --uid 1654 --no-create-home app && chown -R app /app
+USER app
+EXPOSE 8000
+HEALTHCHECK --interval=30s --timeout=3s --start-period=10s \
+  CMD python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=2)"
+ENTRYPOINT ["python", "-m", "ballast_ai.service", "--host", "0.0.0.0", "--port", "8000"]

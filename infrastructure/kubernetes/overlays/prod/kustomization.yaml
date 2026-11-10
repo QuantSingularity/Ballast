@@ -3,6 +3,8 @@ kind: Kustomization
 resources:
   - ../../base
 images:
+  - name: ghcr.io/quantsingularity/ballast-ai
+    newTag: "2.0.0"
   - name: ghcr.io/quantsingularity/ballast-backend
     newTag: "1.0.0"
   - name: ghcr.io/quantsingularity/ballast-web

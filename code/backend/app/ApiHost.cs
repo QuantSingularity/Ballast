@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using System.Threading.RateLimiting;
+using Ballast.AiClient;
 using Ballast.Api.Dependencies;
 using Ballast.Api.Schemas;
 using Ballast.Api.Services;
@@ -32,6 +33,11 @@ public static class ApiHost
         services.AddSingleton<JwtTokenService>();
         services.AddSingleton<AuditLog>();
         services.AddSingleton<PaymentWorkflow>();
+        services.AddSingleton(new AiServiceClient(new HttpClient
+        {
+            BaseAddress = new Uri(settings.AiServiceUrl),
+            Timeout = TimeSpan.FromSeconds(180)
+        }));
         services.AddSingleton<ModelHub>();
         services.AddSingleton<ForecastService>();
         services.AddSingleton<CashService>();

@@ -42,9 +42,9 @@ Approve/Reject only to users who are allowed to act. **Alerts** lists limit brea
 
 ## 6. Explore the AI layer
 
-**AI models** shows the model catalog, the forecast quality measured on the seeded history, the regime parameters per
-currency, and flagged items. `code/ai_models/examples` runs the same models standalone:
+**AI models** shows the model catalog (reported by the Python model service), the forecast quality measured on the seeded
+history, the regime parameters per currency, and flagged items. `code/ai_models/examples` runs the same models standalone:
 
 ```bash
-dotnet run --project code/ai_models/examples -c Release -- forecast   # also: anomaly, regimes, hedging, all
+cd code/ai_models && .venv/bin/python examples/run_examples.py forecast   # also: anomaly, regimes, hedging, all
 ```

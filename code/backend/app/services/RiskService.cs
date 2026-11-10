@@ -1,3 +1,4 @@
+using Ballast.AiClient;
 using Ballast.Api.Schemas;
 using Ballast.Core;
 using Ballast.Core.Domain;
@@ -47,7 +48,7 @@ public sealed class RiskService(
         foreach (var ccy in forecasts.ForeignCurrencies())
         {
             decimal exposureBase = Math.Abs(exposures.Where(l => l.Currency == ccy && l.BucketIndex == 0).Sum(l => l.NetBase));
-            var r = FxAtRisk.Compute(models.Hmm(ccy), rates.LogReturns(ccy, 60), (double)exposureBase, 21, 0.95, 31);
+            FxVarResult r = models.FxVar(ccy, (double)exposureBase);
             fxVar.Add(new FxVarDto(ccy, Currencies.Round(exposureBase, settings.BaseCurrency), Math.Round(r.Var, 2),
                 Math.Round(r.ExpectedShortfall, 2), Math.Round(r.HighVolProbability, 4), r.Sigmas));
         }

@@ -434,3 +434,147 @@ public class RiskTests
         Assert.True(ok.All(l => l.Status == LimitStatus.Ok));
     }
 }
+
+public class HedgeAdvisorTests
+{
+    private static ExposureLine Line(string ccy, int bucket, decimal net, decimal hedged) =>
+        new(ccy, ExposureAggregator.Buckets[bucket].Label, bucket, net, net, hedged, net == 0 ? 0 : hedged / Math.Abs(net),
+            net - Math.Sign(net) * hedged, net - Math.Sign(net) * hedged);
+
+    [Fact]
+    public void Recommendations_ClampTheAgentIntoThePolicyBandAndNetOffExistingHedges()
+    {
+        var advisor = new HedgeAdvisor(q => q.Select(_ => 1.0).ToList());
+        var recs = advisor.Recommend([Line("EUR", 0, 100_000m, 0m), Line("CHF", 2, 80_000m, 0m)], new Dictionary<string, double>());
+        Assert.Equal(0.9m, recs[0].TargetRatio);
+        Assert.Equal(90_000m, recs[0].RecommendedNotional);
+        Assert.Equal(Ballast.Core.Domain.HedgeDirection.SellForeign, recs[0].Direction!.Value);
+        Assert.Equal(0.5m, recs[1].TargetRatio);
+        Assert.Equal(40_000m, recs[1].RecommendedNotional);
+    }
+
+    [Fact]
+    public void NoActionWhenAlreadyHedgedAboveTargetAndShortExposureBuysForeign()
+    {
+        var advisor = new HedgeAdvisor(q => q.Select(_ => 0.0).ToList());
+        var recs = advisor.Recommend([Line("JPY", 2, -50_000m, 10_000m), Line("GBP", 0, -100_000m, 0m)], new Dictionary<string, double>());
+        Assert.True(recs[0].Direction is null);
+        Assert.Equal(0m, recs[0].RecommendedNotional);
+        Assert.Equal(Ballast.Core.Domain.HedgeDirection.BuyForeign, recs[1].Direction!.Value);
+        Assert.Equal(50_000m, recs[1].RecommendedNotional);
+    }
+
+    [Fact]
+    public void QueriesCarryBucketCurrentRatioAndRegimeAndZeroExposuresAreSkipped()
+    {
+        IReadOnlyList<AgentQuery>? seen = null;
+        var advisor = new HedgeAdvisor(q => { seen = q; return q.Select(_ => 0.5).ToList(); });
+        var recs = advisor.Recommend([Line("EUR", 1, 0m, 0m), Line("GBP", 1, 60_000m, 15_000m)],
+            new Dictionary<string, double> { ["GBP"] = 0.8, ["EUR"] = 0.1 });
+        Assert.Equal(1, recs.Count);
+        Assert.Equal(1, seen!.Count);
+        Assert.Equal(1, seen[0].BucketIndex);
+        Assert.Equal(0.25, seen[0].CurrentRatio, 1e-9);
+        Assert.Equal(0.8, seen[0].HighVolProbability, 1e-9);
+        Assert.Contains("high-volatility", recs[0].Rationale);
+    }
+
+    [Fact]
+    public void MismatchedAgentResponseIsRejected()
+    {
+        var advisor = new HedgeAdvisor(_ => [0.5]);
+        Assert.Throws<InvalidOperationException>(() =>
+            advisor.Recommend([Line("EUR", 0, 1m, 0m), Line("GBP", 0, 1m, 0m)], new Dictionary<string, double>()));
+    }
+}
+
+public class ModelHubTests
+{
+    private sealed class ScriptedHandler(Func<HttpRequestMessage, HttpResponseMessage> respond) : HttpMessageHandler
+    {
+        public List<string> Calls { get; } = [];
+
+        protected override HttpResponseMessage Send(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            Calls.Add(request.RequestUri!.AbsolutePath);
+            return respond(request);
+        }
+
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken) =>
+            Task.FromResult(Send(request, cancellationToken));
+    }
+
+    private static HttpResponseMessage Json(string body, int status = 200) =>
+        new((System.Net.HttpStatusCode)status) { Content = new StringContent(body, System.Text.Encoding.UTF8, "application/json") };
+
+    private static Ballast.Api.Services.ModelHub Hub(ScriptedHandler handler)
+    {
+        var settings = TestSettings.Create();
+        var db = new BallastDb(null);
+        DemoSeeder.SeedStatic(db, settings);
+        var client = new Ballast.AiClient.AiServiceClient(new HttpClient(handler) { BaseAddress = new Uri("http://model.test") });
+        return new Ballast.Api.Services.ModelHub(db, new SyntheticRateProvider(settings.Today), settings, client);
+    }
+
+    private const string Assessment =
+        """{"results":[{"score":0.5,"threshold":0.7,"robustZ":0,"newCounterparty":false,"flagged":false,"reasons":[]}]}""";
+
+    [Fact]
+    public void LostDetector_IsRefittedAndTheCallRetriedOnce()
+    {
+        int assessCalls = 0;
+        var handler = new ScriptedHandler(req => req.RequestUri!.AbsolutePath switch
+        {
+            "/v1/anomaly/fit" => Json("""{"threshold":0.71,"samples":9000}"""),
+            "/v1/anomaly/assess-batch" when ++assessCalls == 1 => Json("""{"code":"model_not_fitted","message":"not fitted"}""", 409),
+            "/v1/anomaly/assess-batch" => Json(Assessment),
+            _ => Json("{}", 404)
+        });
+        var hub = Hub(handler);
+        var result = hub.Assess("ACC-US-001", "Globex Materials", 1000m, "USD", new DateOnly(2026, 11, 9));
+        Assert.Equal(0.5, result.Score, 1e-9);
+        Assert.Equal(2, handler.Calls.Count(c => c == "/v1/anomaly/fit"));
+        Assert.Equal(2, handler.Calls.Count(c => c == "/v1/anomaly/assess-batch"));
+    }
+
+    [Fact]
+    public void DetectorIsFittedOnceAndRegimeModelsAreCached()
+    {
+        var handler = new ScriptedHandler(req => req.RequestUri!.AbsolutePath switch
+        {
+            "/v1/anomaly/fit" => Json("""{"threshold":0.71,"samples":9000}"""),
+            "/v1/anomaly/assess-batch" => Json(Assessment),
+            "/v1/regimes/fit" => Json("""{"means":[0,0],"sigmas":[0.005,0.02],"transition":[[0.97,0.03],[0.08,0.92]],"initial":[0.7,0.3]}"""),
+            "/v1/regimes/filter" => Json("""{"probabilities":[0.3,0.7]}"""),
+            _ => Json("{}", 404)
+        });
+        var hub = Hub(handler);
+        hub.Assess("ACC-US-001", "A", 1m, "USD", new DateOnly(2026, 11, 9));
+        hub.Assess("ACC-US-001", "B", 2m, "USD", new DateOnly(2026, 11, 9));
+        Assert.Equal(1, handler.Calls.Count(c => c == "/v1/anomaly/fit"));
+        Assert.Equal(0.7, hub.HighVolProbability("EUR"), 1e-9);
+        Assert.Equal(0.7, hub.HighVolProbability("EUR"), 1e-9);
+        Assert.Equal(0.0, hub.HighVolProbability("USD"), 1e-9);
+        Assert.Equal(1, handler.Calls.Count(c => c == "/v1/regimes/fit"));
+        Assert.Equal(1, handler.Calls.Count(c => c == "/v1/regimes/filter"));
+    }
+
+    [Fact]
+    public void UnreachableModelService_BecomesAServiceUnavailableError()
+    {
+        var handler = new ScriptedHandler(_ => throw new HttpRequestException("connection refused"));
+        var hub = Hub(handler);
+        var ex = Assert.Throws<ServiceUnavailableException>(() => hub.Hmm("EUR"));
+        Assert.Contains("unreachable", ex.Message);
+        Assert.Equal(503, ex.StatusCode);
+    }
+
+    [Fact]
+    public void ServiceErrorsAreSurfacedAsBadGateway()
+    {
+        var hub = Hub(new ScriptedHandler(_ => Json("""{"code":"validation_error","message":"series: too short"}""", 400)));
+        var ex = Assert.Throws<BallastException>(() => hub.Hmm("EUR"));
+        Assert.Equal(502, ex.StatusCode);
+        Assert.Contains("series: too short", ex.Message);
+    }
+}

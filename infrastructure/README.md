@@ -1,14 +1,15 @@
 # Infrastructure
 
-| Path                             | Purpose                                                                              |
-| -------------------------------- | ------------------------------------------------------------------------------------ |
-| `docker/Dockerfile.backend`      | Multi-stage build of the ASP.NET Core API, runs as the non-root `app` user           |
-| `docker/Dockerfile.frontend`     | Angular production build served by unprivileged nginx, proxies `/api` to the backend |
-| `docker-compose.yml`             | Backend plus web. Requires `BALLAST_SECRET_KEY`                                      |
-| `docker-compose.override.yml`    | Exposes the API on port 5000 for local development                                   |
-| `kubernetes/base`                | Namespace, config, PVC, deployments, services, ingress, network policy               |
-| `kubernetes/overlays/{dev,prod}` | Kustomize overlays                                                                   |
-| `validate.sh`                    | YAML syntax check, plus compose and kustomize checks when those tools exist          |
+| Path                             | Purpose                                                                                                       |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `docker/Dockerfile.backend`      | Multi-stage build of the ASP.NET Core API, runs as the non-root `app` user                                    |
+| `docker/Dockerfile.ai`           | Python model service (numpy, FastAPI), non-root, health check on `/health`                                    |
+| `docker/Dockerfile.frontend`     | Angular production build served by unprivileged nginx, proxies `/api` to the backend                          |
+| `docker-compose.yml`             | Model service, backend and web. Requires `BALLAST_SECRET_KEY`. The model service is not published to the host |
+| `docker-compose.override.yml`    | Exposes the API on port 5000 for local development                                                            |
+| `kubernetes/base`                | Namespace, config, PVC, deployments (model service, backend, web), services, ingress, network policies        |
+| `kubernetes/overlays/{dev,prod}` | Kustomize overlays                                                                                            |
+| `validate.sh`                    | YAML syntax check, plus compose and kustomize checks when those tools exist                                   |
 
 ## Run locally with Docker
 
@@ -26,7 +27,9 @@ kubectl -n ballast create secret generic ballast-secrets --from-literal=BALLAST_
 kubectl apply -k infrastructure/kubernetes/overlays/prod
 ```
 
-The backend deployment is deliberately a single replica with a `Recreate` rollout. State lives in a JSON snapshot on a
+The model service and backend deployments are deliberately single replica with a `Recreate` rollout. The model service holds the
+fitted anomaly detector in memory (the backend refits it automatically after a restart), and a network policy admits only the
+backend. The backend is a single replica because its state lives in a JSON snapshot on a
 `ReadWriteOnce` volume, so several replicas would diverge. Horizontal scaling needs the `BallastDb` abstraction replaced
 by a shared database first.
 

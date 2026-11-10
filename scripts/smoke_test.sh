@@ -10,18 +10,31 @@ require curl "Install curl"
 require python3 "Install python3"
 
 port="${1:-5097}"
+ai_port=$((port + 1000))
 base="http://127.0.0.1:${port}"
 out="$(mktemp -d)"
+py="$(ai_python)"
+if [ -z "$py" ] || ! ai_deps_ok "$py"; then
+  fail "Python model service dependencies missing. Run scripts/setup_environment.sh"
+  exit 1
+fi
 dotnet publish code/backend/app/Ballast.Api.csproj -c Release -o "$out" --nologo -v quiet >/dev/null
 
+start_ai_service "$py" "$ai_port"
+ai_pid="$AI_PID"
+ok "model service"
+
 BALLAST_ENV=development BALLAST_SECRET_KEY="smoke-test-secret-smoke-test-secret-0123" ASPNETCORE_URLS="$base" \
-  Logging__LogLevel__Default=Warning dotnet "$out/Ballast.Api.dll" >"$out/api.log" 2>&1 &
+  BALLAST_AI_SERVICE_URL="http://127.0.0.1:${ai_port}" Logging__LogLevel__Default=Warning \
+  dotnet "$out/Ballast.Api.dll" >"$out/api.log" 2>&1 &
 pid=$!
-trap 'kill "$pid" 2>/dev/null || true; rm -rf "$out"' EXIT
+trap 'kill "$pid" "$ai_pid" 2>/dev/null || true; rm -rf "$out"' EXIT
 
 for _ in $(seq 1 60); do curl -fsS "$base/health" >/dev/null 2>&1 && break; sleep 0.5; done
 curl -fsS "$base/health" >/dev/null || { fail "API did not start"; cat "$out/api.log"; exit 1; }
 ok "health"
+[ "$(curl -fsS "$base/health" | python3 -c 'import sys,json;print(json.load(sys.stdin)["aiService"])')" = "up" ] || { fail "API cannot reach the model service"; exit 1; }
+ok "API reaches the model service"
 
 token="$(curl -fsS -X POST "$base/api/auth/login" -H 'content-type: application/json' \
   -d '{"email":"treasurer@ballast.example","password":"Ballast-Demo-2026!"}' | python3 -c 'import sys,json;print(json.load(sys.stdin)["accessToken"])')"

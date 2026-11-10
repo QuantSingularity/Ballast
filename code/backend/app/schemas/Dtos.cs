@@ -1,4 +1,4 @@
-using Ballast.AiModels.Research;
+using Ballast.AiClient;
 using Ballast.Core.Domain;
 using Ballast.Risk;
 using Ballast.Treasury;

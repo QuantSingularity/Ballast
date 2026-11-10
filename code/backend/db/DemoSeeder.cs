@@ -1,4 +1,3 @@
-using Ballast.AiModels.Research;
 using Ballast.Core;
 using Ballast.Core.Domain;
 

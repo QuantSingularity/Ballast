@@ -1,9 +1,0 @@
-<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <RootNamespace>Ballast.AiModels</RootNamespace>
-    <AssemblyName>Ballast.AiModels</AssemblyName>
-  </PropertyGroup>
-  <ItemGroup>
-    <Compile Remove="examples/**;tests/**" />
-  </ItemGroup>
-</Project>

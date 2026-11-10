@@ -1,4 +1,3 @@
-using Ballast.AiModels.Generative;
 using Ballast.Core;
 using Ballast.Core.Domain;
 
@@ -62,14 +61,27 @@ public sealed class SyntheticRateProvider(DateOnly asOf) : IRateProvider
             else
             {
                 var v = Vol[currency];
-                var sim = new RegimeSwitchingSimulator([0.0, 0.0], [v.Calm, v.Stress],
-                    new[,] { { 0.97, 0.03 }, { 0.08, 0.92 } }, v.Seed);
-                r = sim.SimulateReturns(1, 900)[0];
+                r = SimulateRegimeReturns(v.Calm, v.Stress, v.Seed, 900);
                 if (currency is "GBP" or "JPY") for (int i = 840; i < 900; i++) r[i] *= 2.0;
             }
             _returnCache[currency] = r;
             return r;
         }
+    }
+
+    private static double[] SimulateRegimeReturns(double calm, double stress, int seed, int steps)
+    {
+        var rng = new DeterministicRng(seed);
+        var sigma = new[] { calm, stress };
+        var toCalm = new[] { 0.97, 0.08 };
+        var result = new double[steps];
+        int regime = 0;
+        for (int t = 0; t < steps; t++)
+        {
+            result[t] = sigma[regime] * rng.NextNormal();
+            regime = rng.NextDouble() < toCalm[regime] ? 0 : 1;
+        }
+        return result;
     }
 
     public IReadOnlyList<double> LogReturns(string currency, int days)

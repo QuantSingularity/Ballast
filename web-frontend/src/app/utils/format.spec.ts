@@ -37,9 +37,7 @@ describe('format utils', () => {
   });
 
   it('extracts API error messages', () => {
-    expect(errorMessage({ error: { message: 'Bad thing' }, status: 400 })).toBe(
-      'Bad thing',
-    );
+    expect(errorMessage({ error: { message: 'Bad thing' }, status: 400 })).toBe('Bad thing');
     expect(errorMessage({ status: 0 })).toBe('The server could not be reached');
     expect(errorMessage(null)).toBe('Something went wrong');
   });

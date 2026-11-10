@@ -15,23 +15,25 @@ Base URL in development: `http://localhost:5000`. All bodies are JSON with camel
 { "code": "validation_error", "message": "Amount must be greater than zero" }
 ```
 
-| Status | Code               | Meaning                                                     |
-| ------ | ------------------ | ----------------------------------------------------------- |
-| 400    | `validation_error` | Bad input                                                   |
-| 401    | `unauthorized`     | Missing, invalid or expired token, or bad credentials       |
-| 403    | `forbidden`        | Role or maker-checker rule                                  |
-| 404    | `not_found`        | Unknown id or scope                                         |
-| 409    | `conflict`         | Wrong state for the action, duplicate, insufficient balance |
-| 423    | `locked`           | Account locked after 5 failed sign-ins (5 minutes)          |
-| 429    | none               | Auth rate limit exceeded                                    |
-| 500    | `internal_error`   | Unexpected error (details are logged, not returned)         |
+| Status | Code               | Meaning                                                                           |
+| ------ | ------------------ | --------------------------------------------------------------------------------- |
+| 400    | `validation_error` | Bad input                                                                         |
+| 401    | `unauthorized`     | Missing, invalid or expired token, or bad credentials                             |
+| 403    | `forbidden`        | Role or maker-checker rule                                                        |
+| 404    | `not_found`        | Unknown id or scope                                                               |
+| 409    | `conflict`         | Wrong state for the action, duplicate, insufficient balance                       |
+| 423    | `locked`           | Account locked after 5 failed sign-ins (5 minutes)                                |
+| 429    | none               | Auth rate limit exceeded                                                          |
+| 502    | `ai_service_error` | The model service rejected a request or returned an unusable response             |
+| 503    | `ai_unavailable`   | The model service is unreachable. Endpoints that do not need a model keep working |
+| 500    | `internal_error`   | Unexpected error (details are logged, not returned)                               |
 
 ## Public
 
-| Method and path | Description                                   |
-| --------------- | --------------------------------------------- |
-| `GET /`         | Service name and version                      |
-| `GET /health`   | `{ status, environment, asOf, baseCurrency }` |
+| Method and path | Description                                                                                                                                                                     |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `GET /`         | Service name and version                                                                                                                                                        |
+| `GET /health`   | `{ status, environment, asOf, baseCurrency, aiService }`. `status` is always `ok` while the API is alive; `aiService` is `up` or `down` (one second probe of the model service) |
 
 ## Authentication (rate limited per client IP)
 
@@ -204,4 +206,4 @@ from bank statements.
 | `POST /api/v1/anomalies/assess` | `{ accountId, beneficiary, amount, valueDate }` returns score, threshold, robust z, flags, reasons |
 | `GET /api/v1/audit?limit`       | Newest first                                                                                       |
 | `GET /api/v1/audit/verify`      | `{ valid, entries, brokenAtSequence }`                                                             |
-| `GET /api/v1/ai/models`         | Model catalog, anomaly baseline, RL episodes, regimes, forecast backtest                           |
+| `GET /api/v1/ai/models`         | Model catalog from the model service, anomaly baseline, RL episodes, regimes, forecast backtest    |

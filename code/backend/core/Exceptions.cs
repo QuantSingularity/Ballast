@@ -17,3 +17,7 @@ public sealed class NotFoundException(string message) : BallastException(message
 public sealed class ConflictException(string message) : BallastException(message, 409, "conflict");
 
 public sealed class LockedException(string message) : BallastException(message, 423, "locked");
+
+public sealed class ServiceUnavailableException(string message) : BallastException(message, 503, "ai_unavailable");
+
+public sealed class ModelNotFittedException(string message) : BallastException(message, 409, "model_not_fitted");

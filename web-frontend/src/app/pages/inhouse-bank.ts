@@ -4,11 +4,7 @@ import { KpiCard } from '../components/kpi-card';
 import { PageHeader } from '../components/page-header';
 import { ApiService } from '../services/api.service';
 import { AuthService } from '../services/auth.service';
-import {
-  IntercompanyBalance,
-  NettingCycle,
-  NettingResult,
-} from '../types/models';
+import { IntercompanyBalance, NettingCycle, NettingResult } from '../types/models';
 import { errorMessage, formatMoney, formatPct, valueOf } from '../utils/format';
 
 @Component({
@@ -22,10 +18,7 @@ import { errorMessage, formatMoney, formatPct, valueOf } from '../utils/format';
       >
         <label
           >Settlement currency
-          <select
-            [value]="currency()"
-            (change)="currency.set(value($event)); preview()"
-          >
+          <select [value]="currency()" (change)="currency.set(value($event)); preview()">
             @for (c of ccys; track c) {
               <option [value]="c">{{ c }}</option>
             }
@@ -55,12 +48,7 @@ import { errorMessage, formatMoney, formatPct, valueOf } from '../utils/format';
               label="Volume reduction"
               [value]="pct(r.reductionPct, 1)"
               tone="good"
-              [hint]="
-                r.transfers.length +
-                ' transfers replace ' +
-                balances().length +
-                ' balances'
-              "
+              [hint]="r.transfers.length + ' transfers replace ' + balances().length + ' balances'"
             />
           </div>
         }
@@ -87,9 +75,7 @@ import { errorMessage, formatMoney, formatPct, valueOf } from '../utils/format';
                     </tr>
                   } @empty {
                     <tr>
-                      <td class="empty" colspan="3">
-                        No open intercompany balances
-                      </td>
+                      <td class="empty" colspan="3">No open intercompany balances</td>
                     </tr>
                   }
                 </tbody>
@@ -100,12 +86,7 @@ import { errorMessage, formatMoney, formatPct, valueOf } from '../utils/format';
             <div class="card-title" style="padding: 16px 18px 0">
               <h2>Netting settlement instructions</h2>
               @if (auth.canMake() && balances().length > 0) {
-                <button
-                  class="primary small"
-                  type="button"
-                  [disabled]="busy()"
-                  (click)="run()"
-                >
+                <button class="primary small" type="button" [disabled]="busy()" (click)="run()">
                   Run netting cycle
                 </button>
               }
@@ -120,17 +101,12 @@ import { errorMessage, formatMoney, formatPct, valueOf } from '../utils/format';
                   </tr>
                 </thead>
                 <tbody>
-                  @for (
-                    t of result()?.transfers ?? [];
-                    track t.fromEntityId + t.toEntityId
-                  ) {
+                  @for (t of result()?.transfers ?? []; track t.fromEntityId + t.toEntityId) {
                     <tr>
                       <td>{{ t.fromEntityId }}</td>
                       <td>{{ t.toEntityId }}</td>
                       <td class="num">
-                        {{
-                          money(t.amount, result()?.settlementCurrency ?? 'USD')
-                        }}
+                        {{ money(t.amount, result()?.settlementCurrency ?? 'USD') }}
                       </td>
                     </tr>
                   } @empty {
@@ -165,19 +141,13 @@ import { errorMessage, formatMoney, formatPct, valueOf } from '../utils/format';
                     <td class="mono">{{ c.id }}</td>
                     <td>{{ c.runAt.slice(0, 16).replace('T', ' ') }}</td>
                     <td>{{ c.runBy }}</td>
-                    <td class="num">
-                      {{ money(c.grossVolume, c.settlementCurrency) }}
-                    </td>
-                    <td class="num">
-                      {{ money(c.netVolume, c.settlementCurrency) }}
-                    </td>
+                    <td class="num">{{ money(c.grossVolume, c.settlementCurrency) }}</td>
+                    <td class="num">{{ money(c.netVolume, c.settlementCurrency) }}</td>
                     <td class="num">{{ c.transfers.length }}</td>
                   </tr>
                 } @empty {
                   <tr>
-                    <td class="empty" colspan="6">
-                      No netting cycles have been run
-                    </td>
+                    <td class="empty" colspan="6">No netting cycles have been run</td>
                   </tr>
                 }
               </tbody>
@@ -214,19 +184,12 @@ export class InHouseBankPage {
   }
 
   protected async run(): Promise<void> {
-    if (
-      !confirm(
-        'Run a netting cycle? Intercompany balances will be settled and cleared.',
-      )
-    )
-      return;
+    if (!confirm('Run a netting cycle? Intercompany balances will be settled and cleared.')) return;
     this.busy.set(true);
     this.error.set(null);
     try {
       const cycle = await firstValueFrom(this.api.runNetting(this.currency()));
-      this.notice.set(
-        `Cycle ${cycle.id} completed with ${cycle.transfers.length} transfers`,
-      );
+      this.notice.set(`Cycle ${cycle.id} completed with ${cycle.transfers.length} transfers`);
       await this.load();
     } catch (e) {
       this.error.set(errorMessage(e));
