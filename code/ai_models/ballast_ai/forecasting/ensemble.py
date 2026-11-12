@@ -65,9 +65,7 @@ class EnsembleModel:
         ) + self.weight_ridge * self.predict_ridge(horizon)
 
 
-def _fit_components(
-    y: np.ndarray, start: date, w_hw: float, w_ridge: float
-) -> EnsembleModel:
+def _fit_components(y: np.ndarray, start: date, w_hw: float, w_ridge: float) -> EnsembleModel:
     hw = HoltWintersAdditive.fit(y)
     x, target = build_matrix(start, y)
     ridge = RidgeRegressor()
@@ -75,9 +73,7 @@ def _fit_components(
     return EnsembleModel(hw, ridge, w_hw, w_ridge, start, y)
 
 
-def fit_ensemble(
-    y: np.ndarray, start: date, validation_days: int = 28
-) -> EnsembleModel:
+def fit_ensemble(y: np.ndarray, start: date, validation_days: int = 28) -> EnsembleModel:
     y = np.asarray(y, dtype=float)
     if y.size < 60:
         raise ValueError("Need at least 60 days of history")

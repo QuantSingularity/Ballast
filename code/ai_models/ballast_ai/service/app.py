@@ -41,17 +41,13 @@ def _assessment(a: AnomalyAssessment) -> s.AssessResponse:
 
 
 def create_app() -> FastAPI:
-    app = FastAPI(
-        title="Ballast AI service", version=__version__, docs_url=None, redoc_url=None
-    )
+    app = FastAPI(title="Ballast AI service", version=__version__, docs_url=None, redoc_url=None)
     state = ServiceState()
     app.state.models = state
 
     @app.exception_handler(ServiceError)
     async def service_error(_: Request, exc: ServiceError) -> JSONResponse:
-        return JSONResponse(
-            status_code=exc.status, content={"code": exc.code, "message": exc.message}
-        )
+        return JSONResponse(status_code=exc.status, content={"code": exc.code, "message": exc.message})
 
     @app.exception_handler(RequestValidationError)
     async def validation_error(_: Request, exc: RequestValidationError) -> JSONResponse:
@@ -64,9 +60,7 @@ def create_app() -> FastAPI:
 
     @app.exception_handler(ValueError)
     async def value_error(_: Request, exc: ValueError) -> JSONResponse:
-        return JSONResponse(
-            status_code=400, content={"code": "validation_error", "message": str(exc)}
-        )
+        return JSONResponse(status_code=400, content={"code": "validation_error", "message": str(exc)})
 
     @app.exception_handler(Exception)
     async def unexpected(_: Request, exc: Exception) -> JSONResponse:
@@ -148,16 +142,9 @@ def create_app() -> FastAPI:
     @app.post("/v1/anomaly/fit", response_model=s.AnomalyFitResponse)
     def anomaly_fit(req: s.AnomalyFitRequest) -> s.AnomalyFitResponse:
         detector = PaymentAnomalyDetector()
-        detector.fit(
-            [
-                OutflowRecord(r.account_id, r.counterparty, r.amount, r.date)
-                for r in req.records
-            ]
-        )
+        detector.fit([OutflowRecord(r.account_id, r.counterparty, r.amount, r.date) for r in req.records])
         state.set_detector(detector)
-        return s.AnomalyFitResponse(
-            threshold=detector.threshold, samples=detector.samples
-        )
+        return s.AnomalyFitResponse(threshold=detector.threshold, samples=detector.samples)
 
     @app.post("/v1/anomaly/assess-batch", response_model=s.AssessBatchResponse)
     def anomaly_assess_batch(req: s.AssessBatchRequest) -> s.AssessBatchResponse:
@@ -174,9 +161,7 @@ def create_app() -> FastAPI:
     @app.post("/v1/regimes/filter", response_model=s.RegimeFilterResponse)
     def regimes_filter(req: s.RegimeFilterRequest) -> s.RegimeFilterResponse:
         hmm = GaussianHmm.from_dict(req.params.model_dump())
-        return s.RegimeFilterResponse(
-            probabilities=hmm.filter_last(np.asarray(req.returns)).tolist()
-        )
+        return s.RegimeFilterResponse(probabilities=hmm.filter_last(np.asarray(req.returns)).tolist())
 
     @app.post("/v1/risk/fx-var", response_model=s.FxVarResponse)
     def risk_fx_var(req: s.FxVarRequest) -> s.FxVarResponse:
@@ -203,10 +188,7 @@ def create_app() -> FastAPI:
         agent = state.agent
         ratios = recommend_ratios(
             agent,
-            [
-                (q.bucket_index, q.current_ratio, q.high_vol_probability)
-                for q in req.queries
-            ],
+            [(q.bucket_index, q.current_ratio, q.high_vol_probability) for q in req.queries],
         )
         return s.HedgeRecommendResponse(ratios=ratios, episodes=agent.episodes)
 

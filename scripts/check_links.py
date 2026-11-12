@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Checks that relative links in Markdown files point at files that exist."""
+
 import pathlib
 import re
 import sys

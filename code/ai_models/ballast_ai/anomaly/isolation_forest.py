@@ -74,9 +74,7 @@ class IsolationForest:
             self._build(tree, sample, 0, rng)
             self._frozen.append(tree.freeze())
 
-    def _build(
-        self, tree: _Tree, rows: np.ndarray, depth: int, rng: np.random.Generator
-    ) -> int:
+    def _build(self, tree: _Tree, rows: np.ndarray, depth: int, rng: np.random.Generator) -> int:
         count = rows.shape[0]
         if depth >= self._limit or count <= 1:
             return tree.add_leaf(count)

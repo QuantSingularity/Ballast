@@ -49,13 +49,9 @@ class FxHedgingEnvironment:
 
     @property
     def state(self) -> int:
-        return encode_state(
-            self._t * 4 // self.config.steps, self._hedge_idx, self._regime
-        )
+        return encode_state(self._t * 4 // self.config.steps, self._hedge_idx, self._regime)
 
-    def reset(
-        self, seed: int | None = None, start_regime: int = 0, start_hedge_index: int = 0
-    ) -> int:
+    def reset(self, seed: int | None = None, start_regime: int = 0, start_hedge_index: int = 0) -> int:
         if seed is not None:
             self._rng = random.Random(seed)
         self._t = 0

@@ -69,13 +69,7 @@ def generate(start: date, days: int, profile: FlowProfile) -> list[SyntheticFlow
         if not _is_weekend(d):
             boost = 1.35 if d.day >= 26 else 1.0
             for _ in range(2 + rng.randrange(3)):
-                amt = (
-                    scale
-                    * 25_000
-                    * math.exp(0.5 * rng.gauss(0, 1))
-                    * boost
-                    * (1 + profile.net_drift)
-                )
+                amt = scale * 25_000 * math.exp(0.5 * rng.gauss(0, 1)) * boost * (1 + profile.net_drift)
                 flows.append(SyntheticFlow(d, "Receipts", rng.choice(CUSTOMERS), amt))
             mid = 1.2 if 10 <= d.day <= 20 else 1.0
             for _ in range(1 + rng.randrange(3)):

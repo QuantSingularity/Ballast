@@ -32,12 +32,8 @@ def test_hmm_recovers_regime_volatilities(hmm):
 
 def test_hmm_filter_separates_stressed_from_calm_windows(hmm):
     frozen = [[1.0, 0.0], [0.0, 1.0]]
-    stressed = RegimeSwitchingSimulator(
-        [0, 0], [0.005, 0.02], frozen, 8
-    ).simulate_returns(1, 25, 1)[0]
-    quiet = RegimeSwitchingSimulator([0, 0], [0.005, 0.02], frozen, 8).simulate_returns(
-        1, 25, 0
-    )[0]
+    stressed = RegimeSwitchingSimulator([0, 0], [0.005, 0.02], frozen, 8).simulate_returns(1, 25, 1)[0]
+    quiet = RegimeSwitchingSimulator([0, 0], [0.005, 0.02], frozen, 8).simulate_returns(1, 25, 0)[0]
     p_stressed, p_quiet = hmm.filter_last(stressed)[1], hmm.filter_last(quiet)[1]
     assert p_stressed > 0.5 and p_quiet < 0.2 and p_stressed > p_quiet + 0.4
 
@@ -54,9 +50,7 @@ def test_simulator_is_seeded_and_vectorized():
     a = sim.simulate_returns(50, 20)
     np.testing.assert_array_equal(
         a,
-        RegimeSwitchingSimulator(
-            [0, 0], [0.01, 0.03], TRUE_TRANSITION, 5
-        ).simulate_returns(50, 20),
+        RegimeSwitchingSimulator([0, 0], [0.01, 0.03], TRUE_TRANSITION, 5).simulate_returns(50, 20),
     )
     assert a.shape == (50, 20)
 
@@ -75,21 +69,15 @@ def test_q_learning_outperforms_no_hedge_and_random_policies(agent):
 
 
 def test_q_learning_hedges_more_in_stress_than_in_calm(agent):
-    calm = sum(
-        HEDGE_RATIO_LEVELS[agent.greedy(encode_state(b, 0, 0))] for b in range(3)
-    )
-    stress = sum(
-        HEDGE_RATIO_LEVELS[agent.greedy(encode_state(b, 0, 1))] for b in range(3)
-    )
+    calm = sum(HEDGE_RATIO_LEVELS[agent.greedy(encode_state(b, 0, 0))] for b in range(3))
+    stress = sum(HEDGE_RATIO_LEVELS[agent.greedy(encode_state(b, 0, 1))] for b in range(3))
     assert stress > calm
 
 
 def test_recommend_ratios_uses_regime_and_current_hedge(agent):
     calm, stress = recommend_ratios(agent, [(0, 0.0, 0.1), (0, 0.0, 0.9)])
     assert stress >= calm and stress == 1.0
-    assert recommend_ratios(agent, [(1, 0.49, 0.0)]) == recommend_ratios(
-        agent, [(1, 0.5, 0.0)]
-    )
+    assert recommend_ratios(agent, [(1, 0.49, 0.0)]) == recommend_ratios(agent, [(1, 0.5, 0.0)])
     assert agent.episodes == 25_000 and len(agent.policy_table()) == 40
 
 
@@ -106,19 +94,15 @@ def test_risk_metrics_match_normal_theory():
     pnl = np.random.default_rng(21).normal(0, 100, 50_000)
     assert risk_metrics.historical_var(pnl, 0.95) == pytest.approx(164.5, abs=6)
     assert risk_metrics.parametric_var(pnl, 0.95) == pytest.approx(164.5, abs=4)
-    assert risk_metrics.expected_shortfall(pnl, 0.95) > risk_metrics.historical_var(
-        pnl, 0.95
-    )
-    assert risk_metrics.ewma_volatility([0.01, -0.01, 0.01]) == pytest.approx(
-        0.01, rel=0.01
-    )
+    assert risk_metrics.expected_shortfall(pnl, 0.95) > risk_metrics.historical_var(pnl, 0.95)
+    assert risk_metrics.ewma_volatility([0.01, -0.01, 0.01]) == pytest.approx(0.01, rel=0.01)
 
 
 def test_fx_var_is_larger_in_stress_and_scales_with_exposure(hmm):
     calm_returns = [0.001] * 20
-    stressed = RegimeSwitchingSimulator(
-        [0, 0], [0.005, 0.02], [[1.0, 0.0], [0.0, 1.0]], 8
-    ).simulate_returns(1, 20, 1)[0]
+    stressed = RegimeSwitchingSimulator([0, 0], [0.005, 0.02], [[1.0, 0.0], [0.0, 1.0]], 8).simulate_returns(
+        1, 20, 1
+    )[0]
     calm = risk_metrics.fx_var(hmm, calm_returns, 1_000_000, 21, 0.95, 31)
     stress = risk_metrics.fx_var(hmm, stressed, 1_000_000, 21, 0.95, 31)
     assert stress.high_vol_probability > calm.high_vol_probability

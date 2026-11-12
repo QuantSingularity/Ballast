@@ -68,10 +68,7 @@ class PaymentAnomalyDetector:
             )
         self._known = set(by_cp)
         rows = np.array(
-            [
-                self._features(r.account_id, abs(r.amount), r.date, new_cp=False)
-                for r in history
-            ],
+            [self._features(r.account_id, abs(r.amount), r.date, new_cp=False) for r in history],
             dtype=float,
         )
         self._forest.fit(rows)
@@ -79,9 +76,7 @@ class PaymentAnomalyDetector:
         self.samples = len(history)
         self.is_fitted = True
 
-    def _features(
-        self, account: str, amount: float, d: date, new_cp: bool
-    ) -> list[float]:
+    def _features(self, account: str, amount: float, d: date, new_cp: bool) -> list[float]:
         med = self._account_median.get(account, self._global_median)
         return [
             math.log(1.0 + amount),
@@ -96,9 +91,7 @@ class PaymentAnomalyDetector:
     ) -> AnomalyAssessment:
         return self.assess_batch([(account_id, counterparty, amount, value_date)])[0]
 
-    def assess_batch(
-        self, items: Sequence[tuple[str, str, float, date]]
-    ) -> list[AnomalyAssessment]:
+    def assess_batch(self, items: Sequence[tuple[str, str, float, date]]) -> list[AnomalyAssessment]:
         if not self.is_fitted:
             raise RuntimeError("Detector is not fitted")
         prepared = []
@@ -111,13 +104,9 @@ class PaymentAnomalyDetector:
             dtype=float,
         )
         scores = self._forest.score_batch(feats) if len(prepared) else np.zeros(0)
-        return [
-            self._decide(p, float(s)) for p, s in zip(prepared, scores, strict=True)
-        ]
+        return [self._decide(p, float(s)) for p, s in zip(prepared, scores, strict=True)]
 
-    def _decide(
-        self, p: tuple[str, str, float, date, bool], score: float
-    ) -> AnomalyAssessment:
+    def _decide(self, p: tuple[str, str, float, date, bool], score: float) -> AnomalyAssessment:
         account, cp, amount, d, is_new = p
         z = 0.0
         routine = False
@@ -127,22 +116,14 @@ class PaymentAnomalyDetector:
             z = 0.6745 * (amount - stat[0]) / stat[1]
             routine = abs(z) <= 3
             if abs(z) > 6:
-                reasons.append(
-                    f"Amount deviates from this beneficiary's usual payments (robust z = {z:.1f})"
-                )
+                reasons.append(f"Amount deviates from this beneficiary's usual payments (robust z = {z:.1f})")
         med = self._account_median.get(account, self._global_median)
         big_new = is_new and amount > 3 * med
         if big_new:
-            reasons.append(
-                "Large payment to a beneficiary with no payment history on this account"
-            )
+            reasons.append("Large payment to a beneficiary with no payment history on this account")
         if score > self.threshold and not routine:
-            reasons.append(
-                f"Isolation score {score:.2f} exceeds the {self.threshold:.2f} baseline"
-            )
+            reasons.append(f"Isolation score {score:.2f} exceeds the {self.threshold:.2f} baseline")
         if d.weekday() >= 5:
             reasons.append("Value date falls on a weekend")
-        flagged = bool(reasons) and (
-            (score > self.threshold and not routine) or abs(z) > 6 or big_new
-        )
+        flagged = bool(reasons) and ((score > self.threshold and not routine) or abs(z) > 6 or big_new)
         return AnomalyAssessment(score, self.threshold, z, is_new, flagged, reasons)

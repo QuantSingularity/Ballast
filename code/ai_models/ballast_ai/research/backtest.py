@@ -41,9 +41,7 @@ def run(
         if o < 200:
             break
         history = y[:o]
-        result, model = forecast_with_model(
-            history, start, horizon, confidence, inner_origins
-        )
+        result, model = forecast_with_model(history, start, horizon, confidence, inner_origins)
         hw = model.predict_holt_winters(horizon)
         ridge = model.predict_ridge(horizon)
         actual = y[o : o + horizon]

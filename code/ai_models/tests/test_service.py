@@ -61,14 +61,9 @@ def test_forecast_validation_errors_use_the_platform_error_shape(client, series)
         json={"series": [1, 2, 3], "startDate": "2025-01-01", "horizon": 7},
     )
     assert r.status_code == 400 and r.json()["code"] == "validation_error"
-    r = client.post(
-        "/v1/forecast", json={"series": series, "startDate": "2025-01-01", "horizon": 3}
-    )
+    r = client.post("/v1/forecast", json={"series": series, "startDate": "2025-01-01", "horizon": 3})
     assert r.status_code == 400 and "horizon" in r.json()["message"]
-    assert (
-        client.post("/v1/forecast", json={"series": series, "horizon": 7}).status_code
-        == 400
-    )
+    assert client.post("/v1/forecast", json={"series": series, "horizon": 7}).status_code == 400
 
 
 def test_backtest(client, series):
@@ -83,11 +78,7 @@ def test_backtest(client, series):
         },
     )
     body = r.json()
-    assert (
-        r.status_code == 200
-        and body["mase"] < 1.0
-        and 0 <= body["intervalCoverage"] <= 1
-    )
+    assert r.status_code == 200 and body["mase"] < 1.0 and 0 <= body["intervalCoverage"] <= 1
     assert body["origins"] == 3
 
 
@@ -138,9 +129,9 @@ def test_anomaly_requires_fit_then_screens(client):
     assert [r["flagged"] for r in results] == [False, True]
     assert results[1]["newCounterparty"] and results[1]["reasons"]
     models = fresh.get("/v1/models").json()
-    assert models["anomaly"]["fitted"] and models["anomaly"][
-        "threshold"
-    ] == pytest.approx(fit.json()["threshold"])
+    assert models["anomaly"]["fitted"] and models["anomaly"]["threshold"] == pytest.approx(
+        fit.json()["threshold"]
+    )
 
 
 def test_anomaly_fit_needs_enough_records(client):
@@ -160,9 +151,9 @@ def test_regime_fit_filter_and_fx_var_round_trip(client):
     )
     params = client.post("/v1/regimes/fit", json={"returns": returns}).json()
     assert params["sigmas"][0] < params["sigmas"][1] and len(params["transition"]) == 2
-    probs = client.post(
-        "/v1/regimes/filter", json={"params": params, "returns": returns[-20:]}
-    ).json()["probabilities"]
+    probs = client.post("/v1/regimes/filter", json={"params": params, "returns": returns[-20:]}).json()[
+        "probabilities"
+    ]
     assert sum(probs) == pytest.approx(1.0)
     var = client.post(
         "/v1/risk/fx-var",
@@ -173,9 +164,7 @@ def test_regime_fit_filter_and_fx_var_round_trip(client):
         },
     ).json()
     assert (
-        var["var"] > 0
-        and var["expectedShortfall"] >= var["var"]
-        and np.isfinite(var["highVolProbability"])
+        var["var"] > 0 and var["expectedShortfall"] >= var["var"] and np.isfinite(var["highVolProbability"])
     )
     assert var["horizonDays"] == 21 and var["confidence"] == 0.95
 
@@ -191,14 +180,9 @@ def test_hedging_recommendations_and_model_status(client):
         },
     )
     body = r.json()
-    assert (
-        r.status_code == 200 and body["episodes"] == 25_000 and body["ratios"][0] == 1.0
-    )
+    assert r.status_code == 200 and body["episodes"] == 25_000 and body["ratios"][0] == 1.0
     assert all(x in (0.0, 0.25, 0.5, 0.75, 1.0) for x in body["ratios"])
     models = client.get("/v1/models").json()
-    assert (
-        models["hedging"]["episodes"] == 25_000
-        and len(models["hedging"]["policy"]) == 40
-    )
+    assert models["hedging"]["episodes"] == 25_000 and len(models["hedging"]["policy"]) == 40
     assert models["models"][0]["name"] == "cash-forecast-ensemble"
     assert client.post("/v1/hedging/recommend", json={"queries": []}).status_code == 400

@@ -12,11 +12,7 @@ START = date(2025, 1, 1)
 @pytest.fixture(scope="module")
 def detector() -> PaymentAnomalyDetector:
     flows = synthetic.generate(START, 400, synthetic.FlowProfile(1.0, 0.0, 9))
-    history = [
-        OutflowRecord("ACC-1", f.counterparty, f.amount, f.date)
-        for f in flows
-        if f.amount < 0
-    ]
+    history = [OutflowRecord("ACC-1", f.counterparty, f.amount, f.date) for f in flows if f.amount < 0]
     d = PaymentAnomalyDetector()
     d.fit(history)
     return d
@@ -39,14 +35,9 @@ def test_extreme_amount_scores_higher_than_typical(detector):
 
 
 def test_constant_recurring_payments_are_routine():
-    history = [
-        OutflowRecord("A", "Bank Charges", -3500.0, date(2025, 1, 31 - i))
-        for i in range(12)
-    ]
+    history = [OutflowRecord("A", "Bank Charges", -3500.0, date(2025, 1, 31 - i)) for i in range(12)]
     history += [
-        OutflowRecord(
-            "A", f"V{i % 5}", -(5000.0 + 50.0 * (i % 7)), date(2025, 2, 1 + i % 20)
-        )
+        OutflowRecord("A", f"V{i % 5}", -(5000.0 + 50.0 * (i % 7)), date(2025, 2, 1 + i % 20))
         for i in range(120)
     ]
     d = PaymentAnomalyDetector()
@@ -71,9 +62,7 @@ def test_unfitted_detector_refuses_and_small_history_is_rejected():
     with pytest.raises(RuntimeError):
         PaymentAnomalyDetector().assess("A", "B", 1.0, date(2026, 1, 5))
     with pytest.raises(ValueError):
-        PaymentAnomalyDetector().fit(
-            [OutflowRecord("A", "B", -1.0, date(2026, 1, 5))] * 10
-        )
+        PaymentAnomalyDetector().fit([OutflowRecord("A", "B", -1.0, date(2026, 1, 5))] * 10)
 
 
 def test_isolation_forest_scores_outliers_higher():

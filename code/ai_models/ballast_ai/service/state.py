@@ -56,9 +56,7 @@ class ServiceState:
     def require_detector(self) -> PaymentAnomalyDetector:
         detector = self.detector
         if detector is None or not detector.is_fitted:
-            raise ServiceError(
-                409, "model_not_fitted", "The anomaly detector has not been fitted yet"
-            )
+            raise ServiceError(409, "model_not_fitted", "The anomaly detector has not been fitted yet")
         return detector
 
     def cached(self, key: str, compute: Callable[[], Any]) -> Any:

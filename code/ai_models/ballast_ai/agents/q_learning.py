@@ -47,9 +47,7 @@ class QLearningHedger:
                     action = row.index(max(row))
                 result = env.step(action)
                 target = (
-                    result.reward
-                    if result.done
-                    else result.reward + self.gamma * max(q[result.next_state])
+                    result.reward if result.done else result.reward + self.gamma * max(q[result.next_state])
                 )
                 q[state][action] += self.alpha * (target - q[state][action])
                 state = result.next_state
@@ -93,17 +91,11 @@ class QLearningHedger:
         )
 
 
-def recommend_ratios(
-    agent: QLearningHedger, queries: Sequence[tuple[int, float, float]]
-) -> list[float]:
+def recommend_ratios(agent: QLearningHedger, queries: Sequence[tuple[int, float, float]]) -> list[float]:
     """Hedge ratio the policy suggests for (bucket index, current ratio, P(high-volatility regime))."""
     out = []
     for bucket, current, p_high in queries:
-        hedge_idx = min(
-            range(ACTION_COUNT), key=lambda i: abs(HEDGE_RATIO_LEVELS[i] - current)
-        )
+        hedge_idx = min(range(ACTION_COUNT), key=lambda i: abs(HEDGE_RATIO_LEVELS[i] - current))
         regime = 1 if p_high >= 0.5 else 0
-        out.append(
-            HEDGE_RATIO_LEVELS[agent.greedy(encode_state(bucket, hedge_idx, regime))]
-        )
+        out.append(HEDGE_RATIO_LEVELS[agent.greedy(encode_state(bucket, hedge_idx, regime))])
     return out
