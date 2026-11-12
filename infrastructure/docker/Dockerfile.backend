@@ -1,6 +1,6 @@
 # Build context: repository root
 #   docker build -f infrastructure/docker/Dockerfile.backend -t ballast-backend .
-FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:11.0 AS build
 WORKDIR /src
 COPY code/ code/
 RUN dotnet publish code/backend/app/Ballast.Api.csproj -c Release -o /out
