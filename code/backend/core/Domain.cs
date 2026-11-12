@@ -45,7 +45,7 @@ public sealed record Payment(
     string Id, string AccountId, string Beneficiary, decimal Amount, string Currency, string Reference,
     DateOnly ValueDate, PaymentStatus Status, string CreatedBy, DateTimeOffset CreatedAt,
     IReadOnlyList<PaymentApproval> Approvals, IReadOnlyList<string> RiskFlags, int RequiredApprovals,
-    string? RejectionReason);
+    string? RejectionReason, DateTimeOffset? ReleasedAt = null);
 
 public sealed record User(
     string Id, string Email, string Name, UserRole Role, string PasswordHash, DateTimeOffset CreatedAt);

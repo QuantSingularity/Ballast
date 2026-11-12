@@ -18,7 +18,8 @@ public static class AuthEndpoints
     {
         var g = app.MapGroup("/api/auth").RequireRateLimiting("auth");
         g.MapPost("/register", (RegisterRequest r, AuthService s) => Results.Created("/api/auth/profile", s.Register(r)));
-        g.MapPost("/login", (LoginRequest r, AuthService s) => Results.Ok(s.Login(r)));
+        g.MapPost("/login", (LoginRequest r, HttpContext c, AuthService s) =>
+            Results.Ok(s.Login(r, c.Connection.RemoteIpAddress?.ToString() ?? "unknown")));
         g.MapPost("/refresh", (RefreshRequest r, AuthService s) => Results.Ok(s.Refresh(r)));
         g.MapGet("/profile", (HttpContext c, AuthService s) => Results.Ok(s.Profile(c.User.ToActor().Id))).RequireAuthorization();
         g.MapGet("/users", (AuthService s) => Results.Ok(s.Users())).RequireAuthorization(Policies.AdminOnly);

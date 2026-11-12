@@ -81,7 +81,9 @@ without failing the liveness check.
 intercompany balances, netting cycles and the audit log are written to `ballast-state.json` (temp file then atomic move) after
 each mutation and reloaded on start. Static data (entities, accounts, transactions, facilities) is regenerated
 deterministically on every start, so account balances do not change when payments are released: balances are meant to come
-from bank statements, which this system does not ingest. The model service persists nothing.
+from bank statements, which this system does not ingest. To stop several approved payments from together overdrawing an
+account, the release check compares the amount with the balance net of payments already released through the system
+(each carries a `releasedAt` timestamp; seeded history without one is treated as already in the balance). The model service persists nothing.
 
 ## Testing strategy
 
@@ -94,6 +96,6 @@ from bank statements, which this system does not ingest. The model service persi
 - The .NET test projects use a small runner in `code/testkit` rather than xUnit because the development environment had no
   NuGet feed. The attribute and assertion names mirror xUnit, so porting is mostly a package swap.
 - **Parity with the original C# models.** The forecasting port was checked against the C# implementation it replaced on
-  the same seeded data: the group-level backtest, the cash-at-risk figures and the hedge recommendation amounts matched to
-  the last digit. Components that consume random numbers (anomaly scores, the RL policy) use a different random stream and
+  the same seeded data: the group-level backtest, the cash-at-risk figures (as computed at the time, from 20 calibration origins) and the hedge recommendation amounts matched
+  to the last digit. Components that consume random numbers (anomaly scores, the RL policy) use a different random stream and
   are validated by behavior rather than exact values.

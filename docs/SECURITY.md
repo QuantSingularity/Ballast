@@ -11,8 +11,13 @@ production). Verification uses a fixed-time comparison. Policy: at least 12 char
 tampered payload, a token signed with a different secret, and an expired token.
 
 **Sign-in.** Failed sign-ins return the same message whether or not the account exists, and a dummy hash is verified for
-unknown accounts to reduce timing differences. Five failures lock that account for five minutes. Auth endpoints are rate
-limited per client IP (30 per minute by default).
+unknown accounts to reduce timing differences. Five failures from one client address lock that client out of that account for five
+minutes, so a stranger guessing a victim's email only locks out their own address. A much higher ceiling (25 failures across
+all clients) stops a distributed guessing run. Failure counts decay after 15 quiet minutes and the tracker is capped at 10,000
+entries (expired entries are swept first, active locks are evicted last), so it cannot be grown without bound. Auth endpoints
+are rate limited per client IP (30 per minute by default). Forwarded headers are honored only from the networks in
+`BALLAST_TRUSTED_PROXIES` (loopback and private ranges by default), so a client that reaches the API directly cannot choose
+its own IP.
 
 **Authorization.** Role policies on endpoints, plus business rules in the workflow: a payment creator cannot approve it, an
 approver cannot approve twice, the releaser must not be an approver, and larger or flagged payments need two distinct
@@ -20,6 +25,12 @@ approvers. These rules are unit tested and exercised through the API.
 
 **Registration.** Open in development. Outside development the first account becomes Admin and after that only an Admin can
 create users.
+
+**Payments and balances.** Creating a payment is one atomic step under a lock: duplicate check, id allocation, insert, audit
+entry and snapshot, so simultaneous identical requests cannot both pass the duplicate check and the audit order matches the
+order of state changes (a regression test races eight threads over forty rounds). Release is checked against the account
+balance net of payments already released through the system (`releasedAt`), so several approved payments cannot together
+overdraw it.
 
 **Audit.** Authentication, payment, hedge, netting and role events are appended to a SHA-256 hash chain. Editing or deleting
 an entry makes `GET /api/v1/audit/verify` fail (tested).
@@ -41,20 +52,21 @@ is permitted only for the emulator host and localhost (this part of the host is 
 
 ## Known gaps
 
-| Gap                                                        | Impact                                                                                                    | What to do                                                                                                                                                                      |
-| ---------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| No multi-factor authentication                             | A stolen password is enough                                                                               | Add TOTP or WebAuthn, or front the API with an identity provider                                                                                                                |
-| Refresh tokens are stateless                               | They cannot be revoked and are not rotated; a leaked one works until it expires                           | Store token ids server side, rotate on refresh                                                                                                                                  |
-| Role changes apply at the next token                       | A demoted user keeps the old role for up to 30 minutes                                                    | Shorten lifetimes or check the role per request                                                                                                                                 |
-| Lockout state is in memory                                 | Resets on restart, not shared across instances, and can be used to lock someone else out                  | Move to a shared store and add per-IP throttling                                                                                                                                |
-| Hash chain is tamper-evident, not tamper-proof             | Someone who can rewrite the whole snapshot can recompute the chain                                        | Anchor periodic chain heads somewhere they cannot write (WORM storage, an external log)                                                                                         |
-| Web tokens are in `sessionStorage`                         | Readable by script injected into the page                                                                 | The CSP and Angular's escaping reduce the risk; an HttpOnly cookie design would remove it                                                                                       |
-| Model service has no authentication                        | Anyone who can reach its port can run models and fit the anomaly detector, replacing the one the API uses | Keep it on a private network (the compose file does not publish it; the Kubernetes policy restricts it). Add a shared-secret header or mTLS if it ever crosses a trust boundary |
-| Hand-written JWT and hashing                               | Less scrutiny than a vetted package                                                                       | Use `Microsoft.AspNetCore.Authentication.JwtBearer` and `PasswordHasher<T>` where a package feed is available                                                                   |
-| No password reset or email verification                    | Accounts are managed by Admins only                                                                       | Add when an email channel exists                                                                                                                                                |
-| Login failures record the attempted email in the audit log | Personal data in the log                                                                                  | Hash or truncate if that is a concern                                                                                                                                           |
-| Single-instance state store                                | No transactional guarantees                                                                               | See the architecture document                                                                                                                                                   |
-| No dependency or container scanning in CI                  | Known-vulnerable packages could slip in                                                                   | Add `dotnet list package --vulnerable`, `npm audit`, `pip-audit`, and an image scanner                                                                                          |
+| Gap                                                        | Impact                                                                                                           | What to do                                                                                                                                                                      |
+| ---------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| No multi-factor authentication                             | A stolen password is enough                                                                                      | Add TOTP or WebAuthn, or front the API with an identity provider                                                                                                                |
+| Refresh tokens are stateless                               | They cannot be revoked and are not rotated; a leaked one works until it expires                                  | Store token ids server side, rotate on refresh                                                                                                                                  |
+| Role changes apply at the next token                       | A demoted user keeps the old role for up to 30 minutes                                                           | Shorten lifetimes or check the role per request                                                                                                                                 |
+| Lockout state is in memory                                 | Resets on restart and is not shared across instances. A distributed run of 25 failures can still lock an account | Move to a shared store                                                                                                                                                          |
+| Hash chain is tamper-evident, not tamper-proof             | Someone who can rewrite the whole snapshot can recompute the chain                                               | Anchor periodic chain heads somewhere they cannot write (WORM storage, an external log)                                                                                         |
+| Web tokens are in `sessionStorage`                         | Readable by script injected into the page                                                                        | The CSP and Angular's escaping reduce the risk; an HttpOnly cookie design would remove it                                                                                       |
+| Model service has no authentication                        | Anyone who can reach its port can run models and fit the anomaly detector, replacing the one the API uses        | Keep it on a private network (the compose file does not publish it; the Kubernetes policy restricts it). Add a shared-secret header or mTLS if it ever crosses a trust boundary |
+| Hand-written JWT and hashing                               | Less scrutiny than a vetted package                                                                              | Use `Microsoft.AspNetCore.Authentication.JwtBearer` and `PasswordHasher<T>` where a package feed is available                                                                   |
+| No password reset or email verification                    | Accounts are managed by Admins only                                                                              | Add when an email channel exists                                                                                                                                                |
+| Login failures record the attempted email in the audit log | Personal data in the log                                                                                         | Hash or truncate if that is a concern                                                                                                                                           |
+| Single-instance state store                                | No transactional guarantees                                                                                      | See the architecture document                                                                                                                                                   |
+| No container image scanning; base images use floating tags | A vulnerable base image layer would not be caught                                                                | CI audits NuGet, npm and pip dependencies, pins actions to commit SHAs and Dependabot tracks images; add an image scanner and digest pins once a registry is reachable          |
+| Account balances are static statement figures              | Released payments are netted in the release check but balances shown elsewhere are not reduced                   | Ingest bank statements and replace the netting with real balances                                                                                                               |
 
 ## Reporting a vulnerability
 

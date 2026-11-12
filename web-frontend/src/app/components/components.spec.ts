@@ -38,7 +38,9 @@ describe('LineBandChart', () => {
 
     const empty = TestBed.createComponent(LineBandChart);
     await empty.whenStable();
-    expect((empty.nativeElement as HTMLElement).textContent).toContain('No data');
+    expect((empty.nativeElement as HTMLElement).textContent).toContain(
+      'No data',
+    );
   });
 });
 
@@ -74,7 +76,9 @@ describe('StatusBadge, KpiCard and BarList', () => {
     ]);
     await f.whenStable();
     const widths = Array.from(
-      (f.nativeElement as HTMLElement).querySelectorAll<HTMLElement>('.bar-fill'),
+      (f.nativeElement as HTMLElement).querySelectorAll<HTMLElement>(
+        '.bar-fill',
+      ),
     ).map((e) => e.style.width);
     expect(widths).toEqual(['100%', '0%', '25%']);
   });

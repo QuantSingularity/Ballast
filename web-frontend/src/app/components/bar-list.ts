@@ -32,6 +32,9 @@ export interface BarItem {
 export class BarList {
   readonly items = input<BarItem[]>([]);
   protected readonly normalized = computed(() =>
-    this.items().map((i) => ({ ...i, width: Math.max(0, Math.min(100, i.share * 100)) })),
+    this.items().map((i) => ({
+      ...i,
+      width: Math.max(0, Math.min(100, i.share * 100)),
+    })),
   );
 }

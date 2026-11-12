@@ -5,7 +5,8 @@ describe('chart utils', () => {
     const ticks = niceTicks(-130, 870, 5);
     expect(ticks[0]).toBeLessThanOrEqual(-130);
     expect(ticks[ticks.length - 1]).toBeGreaterThanOrEqual(870);
-    for (let i = 1; i < ticks.length; i++) expect(ticks[i]).toBeGreaterThan(ticks[i - 1] ?? 0);
+    for (let i = 1; i < ticks.length; i++)
+      expect(ticks[i]).toBeGreaterThan(ticks[i - 1] ?? 0);
   });
 
   it('handles degenerate ranges', () => {

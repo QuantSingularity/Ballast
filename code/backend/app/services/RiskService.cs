@@ -12,6 +12,8 @@ public sealed class RiskService(
     BallastDb db, IRateProvider rates, BallastSettings settings, ForecastService forecasts,
     CashService cash, DebtService debt, FxService fx, ModelHub models)
 {
+    public const int RiskCalibrationOrigins = 40;
+
     private LiquiditySnapshot Snapshot()
     {
         string b = settings.BaseCurrency;
@@ -37,7 +39,9 @@ public sealed class RiskService(
     public RiskMetricsDto Metrics()
     {
         var snap = Snapshot();
-        var forecast = forecasts.Forecast(forecasts.ResolveScope("all"), 91, 0.9);
+        // Use the largest calibration set the model service accepts: tail estimates need as many error windows as the
+        // history allows.
+        var forecast = forecasts.Forecast(forecasts.ResolveScope("all"), 91, 0.9, RiskCalibrationOrigins);
         var car = new List<CashAtRiskResult>();
         foreach (int horizon in new[] { 30, 91 })
             foreach (double level in new[] { 0.95, 0.99 })

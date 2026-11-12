@@ -1,6 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk.Razor">
   <PropertyGroup>
-    <TargetFrameworks>net10.0-android;net10.0-ios</TargetFrameworks>
+    <!-- The iOS workload only exists on macOS, and restore evaluates every target framework, so a Linux or Windows
+         machine that lists net10.0-ios fails with NETSDK1178 even when building only the Android target. -->
+    <TargetFrameworks>net10.0-android</TargetFrameworks>
+    <TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('OSX'))">$(TargetFrameworks);net10.0-ios</TargetFrameworks>
     <OutputType>Exe</OutputType>
     <RootNamespace>Ballast.Mobile.App</RootNamespace>
     <UseMaui>true</UseMaui>

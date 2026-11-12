@@ -15,18 +15,18 @@ Base URL in development: `http://localhost:5000`. All bodies are JSON with camel
 { "code": "validation_error", "message": "Amount must be greater than zero" }
 ```
 
-| Status | Code               | Meaning                                                                           |
-| ------ | ------------------ | --------------------------------------------------------------------------------- |
-| 400    | `validation_error` | Bad input                                                                         |
-| 401    | `unauthorized`     | Missing, invalid or expired token, or bad credentials                             |
-| 403    | `forbidden`        | Role or maker-checker rule                                                        |
-| 404    | `not_found`        | Unknown id or scope                                                               |
-| 409    | `conflict`         | Wrong state for the action, duplicate, insufficient balance                       |
-| 423    | `locked`           | Account locked after 5 failed sign-ins (5 minutes)                                |
-| 429    | none               | Auth rate limit exceeded                                                          |
-| 502    | `ai_service_error` | The model service rejected a request or returned an unusable response             |
-| 503    | `ai_unavailable`   | The model service is unreachable. Endpoints that do not need a model keep working |
-| 500    | `internal_error`   | Unexpected error (details are logged, not returned)                               |
+| Status | Code               | Meaning                                                                                      |
+| ------ | ------------------ | -------------------------------------------------------------------------------------------- |
+| 400    | `validation_error` | Bad input                                                                                    |
+| 401    | `unauthorized`     | Missing, invalid or expired token, or bad credentials                                        |
+| 403    | `forbidden`        | Role or maker-checker rule                                                                   |
+| 404    | `not_found`        | Unknown id or scope                                                                          |
+| 409    | `conflict`         | Wrong state for the action, duplicate, insufficient available balance                        |
+| 423    | `locked`           | 5 failed sign-ins for an account from one client address, or 25 from all clients (5 minutes) |
+| 429    | none               | Auth rate limit exceeded                                                                     |
+| 502    | `ai_service_error` | The model service rejected a request or returned an unusable response                        |
+| 503    | `ai_unavailable`   | The model service is unreachable. Endpoints that do not need a model keep working            |
+| 500    | `internal_error`   | Unexpected error (details are logged, not returned)                                          |
 
 ## Public
 
@@ -130,14 +130,14 @@ Recommendation example:
 
 ## Risk and debt
 
-| Method and path                     | Description                                                                               |
-| ----------------------------------- | ----------------------------------------------------------------------------------------- |
-| `GET /api/v1/risk/metrics`          | Cash at risk (30 and 91 days, 95% and 99%), liquidity, coverage ratio, FX VaR by currency |
-| `GET /api/v1/risk/stress-scenarios` | FX shock, bank failure, collections delay, rates +200bp, combined                         |
-| `GET /api/v1/risk/limits`           | Bank concentration, liquidity buffer, hedge ratio floors, covenant headroom               |
-| `GET /api/v1/debt/summary`          | Debt, net debt, EBITDA proxy, interest, facilities, covenants                             |
-| `GET /api/v1/debt/facilities`       | Facilities                                                                                |
-| `GET /api/v1/debt/covenants`        | Covenant results                                                                          |
+| Method and path                     | Description                                                                                                                                              |
+| ----------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `GET /api/v1/risk/metrics`          | Cash at risk (30 and 91 days, 95% and 99%) with `samples`, `effectiveSamples`, `reliability` and `method`, liquidity, coverage ratio, FX VaR by currency |
+| `GET /api/v1/risk/stress-scenarios` | FX shock, bank failure, collections delay, rates +200bp, combined                                                                                        |
+| `GET /api/v1/risk/limits`           | Bank concentration, liquidity buffer, hedge ratio floors, covenant headroom                                                                              |
+| `GET /api/v1/debt/summary`          | Debt, net debt, EBITDA proxy, interest, facilities, covenants                                                                                            |
+| `GET /api/v1/debt/facilities`       | Facilities                                                                                                                                               |
+| `GET /api/v1/debt/covenants`        | Covenant results                                                                                                                                         |
 
 ```json
 {
@@ -164,15 +164,15 @@ Covenant status: `Breach` below the threshold, `Warning` under 10% headroom, oth
 
 ## Payments
 
-| Method and path                      | Role             | Description                                                                                                       |
-| ------------------------------------ | ---------------- | ----------------------------------------------------------------------------------------------------------------- |
-| `GET /api/v1/payments?status`        | any              | Filter by `Draft`, `PendingApproval`, `Approved`, `Released`, `Rejected`                                          |
-| `GET /api/v1/payments/{id}`          | any              | One payment                                                                                                       |
-| `POST /api/v1/payments`              | Treasurer, Admin | `{ accountId, beneficiary, amount, reference, valueDate }` creates a Draft, screened for anomalies and duplicates |
-| `POST /api/v1/payments/{id}/submit`  | creator or Admin | Draft to PendingApproval                                                                                          |
-| `POST /api/v1/payments/{id}/approve` | Approver, Admin  | Not the creator, not twice by the same person                                                                     |
-| `POST /api/v1/payments/{id}/reject`  | Approver, Admin  | `{ reason }` required                                                                                             |
-| `POST /api/v1/payments/{id}/release` | Treasurer, Admin | Must be Approved, releaser must not be an approver, balance must cover the amount                                 |
+| Method and path                      | Role             | Description                                                                                                                                                                    |
+| ------------------------------------ | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `GET /api/v1/payments?status`        | any              | Filter by `Draft`, `PendingApproval`, `Approved`, `Released`, `Rejected`                                                                                                       |
+| `GET /api/v1/payments/{id}`          | any              | One payment                                                                                                                                                                    |
+| `POST /api/v1/payments`              | Treasurer, Admin | `{ accountId, beneficiary, amount, reference, valueDate }` creates a Draft, screened for anomalies and duplicates                                                              |
+| `POST /api/v1/payments/{id}/submit`  | creator or Admin | Draft to PendingApproval                                                                                                                                                       |
+| `POST /api/v1/payments/{id}/approve` | Approver, Admin  | Not the creator, not twice by the same person                                                                                                                                  |
+| `POST /api/v1/payments/{id}/reject`  | Approver, Admin  | `{ reason }` required                                                                                                                                                          |
+| `POST /api/v1/payments/{id}/release` | Treasurer, Admin | Must be Approved, releaser must not be an approver, balance net of payments already released through the system must cover the amount. A released payment carries `releasedAt` |
 
 Required approvals: 1, or 2 when the amount in the base currency exceeds `BALLAST_DUAL_APPROVAL_THRESHOLD`, or when
 screening flags the payment, or when a duplicate is suspected.

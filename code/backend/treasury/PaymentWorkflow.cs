@@ -59,12 +59,20 @@ public sealed class PaymentWorkflow(BallastSettings settings, IRateProvider rate
         return p with { Status = PaymentStatus.Rejected, RejectionReason = reason.Trim() };
     }
 
-    public Payment Release(Payment p, Actor actor, BankAccount account)
+    /// <param name="alreadyReleased">
+    /// Total of payments already released from this account through this system. The account balance
+    /// is a static statement figure and is not debited on release, so without this netting several approved payments
+    /// could each pass the check and together overdraw the account.
+    /// </param>
+    public Payment Release(Payment p, Actor actor, BankAccount account, decimal alreadyReleased = 0m)
     {
         if (!IsMaker(actor.Role)) throw new ForbiddenException("Only treasurers and administrators can release payments");
         if (p.Status != PaymentStatus.Approved) throw new ConflictException($"Payment is {p.Status}, only approved payments can be released");
         if (p.Approvals.Any(a => a.UserId == actor.Id)) throw new ForbiddenException("The releaser must be different from the approvers");
-        if (account.Balance < p.Amount) throw new ConflictException("Insufficient balance on the debit account");
-        return p with { Status = PaymentStatus.Released };
+        decimal available = account.Balance - alreadyReleased;
+        if (available < p.Amount)
+            throw new ConflictException(
+                $"Insufficient available balance on the debit account ({Currencies.Round(available, account.Currency)} {account.Currency} available after releases already made)");
+        return p with { Status = PaymentStatus.Released, ReleasedAt = clock.GetUtcNow() };
     }
 }

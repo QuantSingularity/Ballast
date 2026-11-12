@@ -64,7 +64,9 @@ import { errorMessage, formatMoney, formatPct, valueOf } from '../utils/format';
                   </tr>
                 } @empty {
                   <tr>
-                    <td class="empty" colspan="7">No accounts match the filter</td>
+                    <td class="empty" colspan="7">
+                      No accounts match the filter
+                    </td>
                   </tr>
                 }
               </tbody>
@@ -94,14 +96,20 @@ import { errorMessage, formatMoney, formatPct, valueOf } from '../utils/format';
                       <td>{{ t.date }}</td>
                       <td>{{ t.category }}</td>
                       <td>{{ t.counterparty }}</td>
-                      <td class="num" [style.color]="t.amount < 0 ? 'var(--bad)' : 'var(--good)'">
+                      <td
+                        class="num"
+                        [style.color]="
+                          t.amount < 0 ? 'var(--bad)' : 'var(--good)'
+                        "
+                      >
                         {{ money(t.amount, t.currency, 2) }}
                       </td>
                     </tr>
                   } @empty {
                     <tr>
                       <td class="empty" colspan="4">
-                        No transactions in the last 30 days (non-operating account)
+                        No transactions in the last 30 days (non-operating
+                        account)
                       </td>
                     </tr>
                   }
@@ -126,12 +134,16 @@ export class CashPage {
 
   protected readonly money = formatMoney;
   protected readonly value = valueOf;
-  protected readonly base = computed(() => this.summary()?.baseCurrency ?? 'USD');
+  protected readonly base = computed(
+    () => this.summary()?.baseCurrency ?? 'USD',
+  );
   protected readonly currencies = computed(() =>
     [...new Set(this.accounts().map((a) => a.currency))].sort(),
   );
   protected readonly filtered = computed(() =>
-    this.accounts().filter((a) => !this.currency() || a.currency === this.currency()),
+    this.accounts().filter(
+      (a) => !this.currency() || a.currency === this.currency(),
+    ),
   );
   protected readonly subtitle = computed(() => {
     const s = this.summary();
@@ -147,7 +159,9 @@ export class CashPage {
   protected async select(a: Account): Promise<void> {
     this.selected.set(a);
     try {
-      this.transactions.set(await firstValueFrom(this.api.transactions(a.id, 30, 50)));
+      this.transactions.set(
+        await firstValueFrom(this.api.transactions(a.id, 30, 50)),
+      );
     } catch (e) {
       this.error.set(errorMessage(e));
     }

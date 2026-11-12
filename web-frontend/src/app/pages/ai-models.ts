@@ -4,7 +4,12 @@ import { KpiCard } from '../components/kpi-card';
 import { PageHeader } from '../components/page-header';
 import { ApiService } from '../services/api.service';
 import { AiOverview, AnomalyItem } from '../types/models';
-import { errorMessage, formatMoney, formatNumber, formatPct } from '../utils/format';
+import {
+  errorMessage,
+  formatMoney,
+  formatNumber,
+  formatPct,
+} from '../utils/format';
 
 @Component({
   selector: 'app-ai-models',
@@ -89,7 +94,9 @@ import { errorMessage, formatMoney, formatNumber, formatPct } from '../utils/for
           </section>
           <section class="card flush">
             <div class="card-title" style="padding: 16px 18px 0">
-              <h2>Flagged items (last 30 days of history plus open payments)</h2>
+              <h2>
+                Flagged items (last 30 days of history plus open payments)
+              </h2>
             </div>
             <div class="scroll">
               <table>
@@ -125,8 +132,9 @@ import { errorMessage, formatMoney, formatNumber, formatPct } from '../utils/for
         <section class="card">
           <div class="card-title"><h2>Forecast backtest detail</h2></div>
           <p class="muted">
-            {{ o.forecastBacktest.origins }} rolling origins, {{ o.forecastBacktest.horizon }}-day
-            horizon. Daily MAE: ensemble {{ num(o.forecastBacktest.maeEnsemble, 0) }}, Holt-Winters
+            {{ o.forecastBacktest.origins }} rolling origins,
+            {{ o.forecastBacktest.horizon }}-day horizon. Daily MAE: ensemble
+            {{ num(o.forecastBacktest.maeEnsemble, 0) }}, Holt-Winters
             {{ num(o.forecastBacktest.maeHoltWinters, 0) }}, ridge
             {{ num(o.forecastBacktest.maeRidge, 0) }}, seasonal naive
             {{ num(o.forecastBacktest.maeSeasonalNaive, 0) }}.

@@ -4,8 +4,20 @@ import { PageHeader } from '../components/page-header';
 import { StatusBadge } from '../components/status-badge';
 import { ApiService } from '../services/api.service';
 import { AuthService } from '../services/auth.service';
-import { Exposure, FxRate, Hedge, HedgeDirection, HedgeRecommendation } from '../types/models';
-import { errorMessage, formatMoney, formatNumber, formatPct, valueOf } from '../utils/format';
+import {
+  Exposure,
+  FxRate,
+  Hedge,
+  HedgeDirection,
+  HedgeRecommendation,
+} from '../types/models';
+import {
+  errorMessage,
+  formatMoney,
+  formatNumber,
+  formatPct,
+  valueOf,
+} from '../utils/format';
 
 @Component({
   selector: 'app-fx',
@@ -52,7 +64,9 @@ import { errorMessage, formatMoney, formatNumber, formatPct, valueOf } from '../
                       <td class="num">{{ num(r.forward90, 4) }}</td>
                       <td class="num">
                         <app-status-badge
-                          [status]="r.highVolProbability >= 0.5 ? 'Warning' : 'Ok'"
+                          [status]="
+                            r.highVolProbability >= 0.5 ? 'Warning' : 'Ok'
+                          "
                           [text]="pct(r.highVolProbability)"
                         />
                       </td>
@@ -70,7 +84,10 @@ import { errorMessage, formatMoney, formatNumber, formatPct, valueOf } from '../
                 <div class="form-grid">
                   <label
                     >Currency
-                    <select [value]="form.currency()" (change)="form.currency.set(value($event))">
+                    <select
+                      [value]="form.currency()"
+                      (change)="form.currency.set(value($event))"
+                    >
                       @for (c of ccys; track c) {
                         <option [value]="c">{{ c }}</option>
                       }
@@ -78,9 +95,16 @@ import { errorMessage, formatMoney, formatNumber, formatPct, valueOf } from '../
                   </label>
                   <label
                     >Direction
-                    <select [value]="form.direction()" (change)="setDirection(value($event))">
-                      <option value="SellForeign">Sell foreign (hedge receivable)</option>
-                      <option value="BuyForeign">Buy foreign (hedge payable)</option>
+                    <select
+                      [value]="form.direction()"
+                      (change)="setDirection(value($event))"
+                    >
+                      <option value="SellForeign">
+                        Sell foreign (hedge receivable)
+                      </option>
+                      <option value="BuyForeign">
+                        Buy foreign (hedge payable)
+                      </option>
                     </select>
                   </label>
                   <label
@@ -111,7 +135,11 @@ import { errorMessage, formatMoney, formatNumber, formatPct, valueOf } from '../
                       (input)="form.counterparty.set(value($event))"
                     />
                   </label>
-                  <button class="primary" type="submit" [disabled]="busy() || form.notional() <= 0">
+                  <button
+                    class="primary"
+                    type="submit"
+                    [disabled]="busy() || form.notional() <= 0"
+                  >
                     Book at forward rate
                   </button>
                 </div>
@@ -122,7 +150,9 @@ import { errorMessage, formatMoney, formatNumber, formatPct, valueOf } from '../
 
         <section class="card flush" style="margin-bottom: 16px">
           <div class="card-title" style="padding: 16px 18px 0">
-            <h2>Forecast exposure by horizon ({{ exposure()?.baseCurrency }})</h2>
+            <h2>
+              Forecast exposure by horizon ({{ exposure()?.baseCurrency }})
+            </h2>
           </div>
           <div class="scroll">
             <table>
@@ -137,14 +167,19 @@ import { errorMessage, formatMoney, formatNumber, formatPct, valueOf } from '../
                 </tr>
               </thead>
               <tbody>
-                @for (l of exposure()?.lines ?? []; track l.currency + l.bucket) {
+                @for (
+                  l of exposure()?.lines ?? [];
+                  track l.currency + l.bucket
+                ) {
                   <tr>
                     <td>{{ l.currency }}</td>
                     <td>{{ l.bucket }}</td>
                     <td class="num">{{ money(l.netNative, l.currency) }}</td>
                     <td class="num">{{ money(l.hedgedNative, l.currency) }}</td>
                     <td class="num">{{ pct(l.hedgeRatio) }}</td>
-                    <td class="num">{{ money(l.openBase, exposure()?.baseCurrency ?? 'USD') }}</td>
+                    <td class="num">
+                      {{ money(l.openBase, exposure()?.baseCurrency ?? 'USD') }}
+                    </td>
                   </tr>
                 }
               </tbody>
@@ -156,7 +191,8 @@ import { errorMessage, formatMoney, formatNumber, formatPct, valueOf } from '../
           <div class="card-title" style="padding: 16px 18px 0">
             <h2>Hedge recommendations</h2>
             <span class="muted"
-              >Reinforcement learning policy, bounded by treasury policy bands</span
+              >Reinforcement learning policy, bounded by treasury policy
+              bands</span
             >
           </div>
           <div class="scroll">
@@ -197,7 +233,9 @@ import { errorMessage, formatMoney, formatNumber, formatPct, valueOf } from '../
         </section>
 
         <section class="card flush">
-          <div class="card-title" style="padding: 16px 18px 0"><h2>Hedge book</h2></div>
+          <div class="card-title" style="padding: 16px 18px 0">
+            <h2>Hedge book</h2>
+          </div>
           <div class="scroll">
             <table>
               <thead>
@@ -219,20 +257,31 @@ import { errorMessage, formatMoney, formatNumber, formatPct, valueOf } from '../
                   <tr>
                     <td class="mono">{{ h.id }}</td>
                     <td>{{ h.currency }}</td>
-                    <td>{{ h.direction === 'SellForeign' ? 'Sell' : 'Buy' }}</td>
+                    <td>
+                      {{ h.direction === 'SellForeign' ? 'Sell' : 'Buy' }}
+                    </td>
                     <td class="num">{{ money(h.notional, h.currency) }}</td>
                     <td class="num">{{ num(h.contractRate, 4) }}</td>
                     <td>{{ h.maturityDate }}</td>
                     <td
                       class="num"
-                      [style.color]="h.markToMarketBase < 0 ? 'var(--bad)' : 'var(--good)'"
+                      [style.color]="
+                        h.markToMarketBase < 0 ? 'var(--bad)' : 'var(--good)'
+                      "
                     >
-                      {{ money(h.markToMarketBase, exposure()?.baseCurrency ?? 'USD') }}
+                      {{
+                        money(
+                          h.markToMarketBase,
+                          exposure()?.baseCurrency ?? 'USD'
+                        )
+                      }}
                     </td>
                     <td>
                       <app-status-badge [status]="h.effectivenessStatus" />
                       @if (h.effectivenessRatio !== null) {
-                        <span class="muted"> {{ pct(h.effectivenessRatio) }}</span>
+                        <span class="muted">
+                          {{ pct(h.effectivenessRatio) }}</span
+                        >
                       }
                     </td>
                     <td><app-status-badge [status]="h.status" /></td>
@@ -271,7 +320,9 @@ export class FxPage {
   protected readonly recommendations = signal<HedgeRecommendation[]>([]);
   protected readonly hedges = signal<Hedge[]>([]);
   protected readonly actionable = computed(() =>
-    this.recommendations().filter((r) => r.direction !== null && r.recommendedNotional > 0),
+    this.recommendations().filter(
+      (r) => r.direction !== null && r.recommendedNotional > 0,
+    ),
   );
 
   protected readonly form = {

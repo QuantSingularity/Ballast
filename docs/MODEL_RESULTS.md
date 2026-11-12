@@ -18,7 +18,7 @@ cd code/ai_models
 
 The models were first written in C# and then ported to Python. On the same seeded data, the forecasting path reproduces the
 C# numbers to the last digit (forecasting uses no random numbers): the group-level backtest below, the 30-day cash at risk of
-1,456,139, and the hedge recommendation notionals all matched exactly. Components that draw random numbers (the isolation
+1,456,139 (computed from 20 calibration origins at the time), and the hedge recommendation notionals all matched exactly. Components that draw random numbers (the isolation
 forest, the RL agent, the regime simulator) use a different random stream, so their exact values differ slightly and they are
 checked by behavior instead.
 
@@ -53,6 +53,26 @@ origins), to show how much of that is noise:
 - Coverage ranges 64% to 93% (mean 84%). On average the intervals are about six points short of nominal, and on one series
   they were 26 points short. Calibration origins overlap and their errors are correlated, so the effective sample is smaller
   than the origin count suggests. Treat the bands as optimistic.
+
+## Cash at risk sample quality
+
+Cash at risk is read from the cumulative forecast errors of the calibration origins. Origins are seven days apart, so for a
+30-day horizon each window overlaps most of its neighbors, and for 91 days almost entirely. The risk metrics therefore use the
+largest calibration set the service accepts (40 origins, about 0.4 s) and report `effectiveSamples` (origins x 7 days divided
+by the horizon), a `reliability` label (low below 10, moderate below 30) and a `method`. When fewer than five observations
+fall in the tail (always the case at 40 samples), the figure is the larger of the empirical quantile and a normal fit to the
+same errors, so the 99% level is no longer just the sample minimum. On the demo data this gives, in USD:
+
+| Horizon | Level | Cash at risk | Expected shortfall | Effective samples | Reliability |
+| ------- | ----- | ------------ | ------------------ | ----------------- | ----------- |
+| 30 days | 95%   | 1,649,843    | 1,930,056          | 9.3               | low         |
+| 30 days | 99%   | 2,090,276    | 2,404,249          | 9.3               | low         |
+| 91 days | 95%   | 2,689,164    | 3,404,089          | 3.1               | low         |
+| 91 days | 99%   | 3,851,780    | 4,429,879          | 3.1               | low         |
+
+With 540 days of history only about four non-overlapping 91-day windows exist after the minimum training period, so the long
+horizon figures are indicative. More history is the only real fix.
+
 - The ensemble beat Holt-Winters alone on daily error in 5 of the 8 series, by 0.2% to 3%. The gain is small.
 
 ## Payment anomaly detector

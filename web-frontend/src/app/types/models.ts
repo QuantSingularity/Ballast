@@ -1,5 +1,6 @@
 export type UserRole = 'Analyst' | 'Treasurer' | 'Approver' | 'Admin';
-export type PaymentStatus = 'Draft' | 'PendingApproval' | 'Approved' | 'Released' | 'Rejected';
+export type PaymentStatus =
+  'Draft' | 'PendingApproval' | 'Approved' | 'Released' | 'Rejected';
 export type HedgeDirection = 'SellForeign' | 'BuyForeign';
 
 export interface User {
@@ -202,6 +203,10 @@ export interface CashAtRisk {
   cashAtRisk: number;
   expectedShortfall: number;
   samples: number;
+  /** Approximate number of independent error windows behind the figure (overlapping windows count less). */
+  effectiveSamples: number;
+  reliability: 'low' | 'moderate' | 'adequate';
+  method: 'empirical' | 'empirical-floored-by-normal';
 }
 
 export interface FxVar {
@@ -337,6 +342,7 @@ export interface Payment {
   riskFlags: string[];
   requiredApprovals: number;
   rejectionReason: string | null;
+  releasedAt?: string | null;
 }
 
 export interface CreatePaymentRequest {

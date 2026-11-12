@@ -61,8 +61,12 @@ public static class ApiHost
             services.Configure<ForwardedHeadersOptions>(o =>
             {
                 o.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+                // Only forwarded headers that arrive from a configured proxy network are honoured. Clearing both lists
+                // (the usual shortcut) would let any direct caller choose its own client IP and dodge the rate limiter.
                 o.KnownIPNetworks.Clear();
                 o.KnownProxies.Clear();
+                foreach (var cidr in settings.TrustedProxyNetworks)
+                    o.KnownIPNetworks.Add(System.Net.IPNetwork.Parse(cidr));
             });
         }
         services.AddRateLimiter(o =>

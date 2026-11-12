@@ -5,7 +5,12 @@ import { PageHeader } from '../components/page-header';
 import { StatusBadge } from '../components/status-badge';
 import { ApiService } from '../services/api.service';
 import { CovenantResult, DebtSummary } from '../types/models';
-import { errorMessage, formatMoney, formatNumber, formatPct } from '../utils/format';
+import {
+  errorMessage,
+  formatMoney,
+  formatNumber,
+  formatPct,
+} from '../utils/format';
 
 @Component({
   selector: 'app-debt',
@@ -23,8 +28,14 @@ import { errorMessage, formatMoney, formatNumber, formatPct } from '../utils/for
         <div class="loading">Loading facilities...</div>
       } @else if (summary(); as s) {
         <div class="grid kpis">
-          <app-kpi-card label="Total debt drawn" [value]="money(s.totalDebtBase, s.baseCurrency)" />
-          <app-kpi-card label="Net debt" [value]="money(s.netDebtBase, s.baseCurrency)" />
+          <app-kpi-card
+            label="Total debt drawn"
+            [value]="money(s.totalDebtBase, s.baseCurrency)"
+          />
+          <app-kpi-card
+            label="Net debt"
+            [value]="money(s.netDebtBase, s.baseCurrency)"
+          />
           <app-kpi-card
             label="EBITDA proxy (12m)"
             [value]="money(s.ebitdaProxyBase, s.baseCurrency)"
@@ -40,7 +51,9 @@ import { errorMessage, formatMoney, formatNumber, formatPct } from '../utils/for
           />
         </div>
         <section class="card flush" style="margin-bottom: 16px">
-          <div class="card-title" style="padding: 16px 18px 0"><h2>Facilities</h2></div>
+          <div class="card-title" style="padding: 16px 18px 0">
+            <h2>Facilities</h2>
+          </div>
           <div class="scroll">
             <table>
               <thead>
@@ -75,7 +88,9 @@ import { errorMessage, formatMoney, formatNumber, formatPct } from '../utils/for
           </div>
         </section>
         <section class="card flush">
-          <div class="card-title" style="padding: 16px 18px 0"><h2>Covenant compliance</h2></div>
+          <div class="card-title" style="padding: 16px 18px 0">
+            <h2>Covenant compliance</h2>
+          </div>
           <div class="scroll">
             <table>
               <thead>

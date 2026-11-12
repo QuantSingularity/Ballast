@@ -31,7 +31,7 @@ public sealed record PaymentApproval(string UserId, string UserName, DateTimeOff
 public sealed record Payment(
     string Id, string AccountId, string Beneficiary, decimal Amount, string Currency, string Reference, DateOnly ValueDate,
     string Status, string CreatedBy, DateTimeOffset CreatedAt, List<PaymentApproval> Approvals, List<string> RiskFlags,
-    int RequiredApprovals, string? RejectionReason);
+    int RequiredApprovals, string? RejectionReason, DateTimeOffset? ReleasedAt = null);
 
 public sealed record LimitResult(string Id, string Name, decimal Actual, decimal Limit, string Unit, string Status, string Detail);
 

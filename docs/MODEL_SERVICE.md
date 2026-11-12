@@ -85,5 +85,5 @@ the treasury policy band.
 
 - Run one replica: the fitted anomaly detector lives in process memory. The API refits automatically after a restart.
 - A cold service takes about half a second to train the hedging agent on first use; a full 91-day forecast with 20
-  calibration origins takes about a quarter of a second.
+  calibration origins takes about a quarter of a second (40 origins, as used for the risk metrics, about 0.4 s).
 - Set `BALLAST_AI_SERVICE_URL` on the API to point at it (default `http://localhost:8000`).

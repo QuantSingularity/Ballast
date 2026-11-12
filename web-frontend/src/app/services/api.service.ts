@@ -49,13 +49,23 @@ export class ApiService {
     return this.http.get<Ladder>(`${this.base}/cash/ladder`);
   }
 
-  transactions(accountId: string | null, days = 30, limit = 100): Observable<Transaction[]> {
+  transactions(
+    accountId: string | null,
+    days = 30,
+    limit = 100,
+  ): Observable<Transaction[]> {
     let params = new HttpParams().set('days', days).set('limit', limit);
     if (accountId) params = params.set('accountId', accountId);
-    return this.http.get<Transaction[]>(`${this.base}/cash/transactions`, { params });
+    return this.http.get<Transaction[]>(`${this.base}/cash/transactions`, {
+      params,
+    });
   }
 
-  forecast(scope: string, horizonDays: number, confidence: number): Observable<Forecast> {
+  forecast(
+    scope: string,
+    horizonDays: number,
+    confidence: number,
+  ): Observable<Forecast> {
     const params = new HttpParams()
       .set('scope', scope)
       .set('horizonDays', horizonDays)
@@ -64,8 +74,12 @@ export class ApiService {
   }
 
   backtest(scope: string, horizonDays = 28): Observable<BacktestMetrics> {
-    const params = new HttpParams().set('scope', scope).set('horizonDays', horizonDays);
-    return this.http.get<BacktestMetrics>(`${this.base}/forecast/backtest`, { params });
+    const params = new HttpParams()
+      .set('scope', scope)
+      .set('horizonDays', horizonDays);
+    return this.http.get<BacktestMetrics>(`${this.base}/forecast/backtest`, {
+      params,
+    });
   }
 
   fxRates(): Observable<FxRate[]> {
@@ -75,7 +89,9 @@ export class ApiService {
     return this.http.get<Exposure>(`${this.base}/fx/exposures`);
   }
   recommendations(): Observable<HedgeRecommendation[]> {
-    return this.http.get<HedgeRecommendation[]>(`${this.base}/fx/recommendations`);
+    return this.http.get<HedgeRecommendation[]>(
+      `${this.base}/fx/recommendations`,
+    );
   }
   regimes(): Observable<HmmStatus[]> {
     return this.http.get<HmmStatus[]>(`${this.base}/fx/regimes`);
@@ -101,24 +117,34 @@ export class ApiService {
   }
 
   icBalances(): Observable<IntercompanyBalance[]> {
-    return this.http.get<IntercompanyBalance[]>(`${this.base}/inhouse-bank/balances`);
+    return this.http.get<IntercompanyBalance[]>(
+      `${this.base}/inhouse-bank/balances`,
+    );
   }
 
   nettingPreview(currency?: string): Observable<NettingResult> {
     const params = currency
       ? new HttpParams().set('settlementCurrency', currency)
       : new HttpParams();
-    return this.http.get<NettingResult>(`${this.base}/inhouse-bank/netting/preview`, { params });
+    return this.http.get<NettingResult>(
+      `${this.base}/inhouse-bank/netting/preview`,
+      { params },
+    );
   }
 
   runNetting(currency?: string): Observable<NettingCycle> {
-    return this.http.post<NettingCycle>(`${this.base}/inhouse-bank/netting/run`, {
-      settlementCurrency: currency ?? null,
-    });
+    return this.http.post<NettingCycle>(
+      `${this.base}/inhouse-bank/netting/run`,
+      {
+        settlementCurrency: currency ?? null,
+      },
+    );
   }
 
   nettingCycles(): Observable<NettingCycle[]> {
-    return this.http.get<NettingCycle[]>(`${this.base}/inhouse-bank/netting/cycles`);
+    return this.http.get<NettingCycle[]>(
+      `${this.base}/inhouse-bank/netting/cycles`,
+    );
   }
 
   debtSummary(): Observable<DebtSummary> {
@@ -132,7 +158,9 @@ export class ApiService {
   }
 
   payments(status?: string): Observable<Payment[]> {
-    const params = status ? new HttpParams().set('status', status) : new HttpParams();
+    const params = status
+      ? new HttpParams().set('status', status)
+      : new HttpParams();
     return this.http.get<Payment[]>(`${this.base}/payments`, { params });
   }
 
@@ -140,9 +168,16 @@ export class ApiService {
     return this.http.post<Payment>(`${this.base}/payments`, req);
   }
 
-  paymentAction(id: string, action: PaymentAction, reason?: string): Observable<Payment> {
+  paymentAction(
+    id: string,
+    action: PaymentAction,
+    reason?: string,
+  ): Observable<Payment> {
     const body = action === 'reject' ? { reason: reason ?? '' } : {};
-    return this.http.post<Payment>(`${this.base}/payments/${id}/${action}`, body);
+    return this.http.post<Payment>(
+      `${this.base}/payments/${id}/${action}`,
+      body,
+    );
   }
 
   assessPayment(req: {

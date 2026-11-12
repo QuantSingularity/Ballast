@@ -20,6 +20,18 @@ public sealed class BallastSettings
     public decimal MinLiquidityBuffer { get; init; } = 10_000_000m;
     public int AuthRateLimitPerMinute { get; init; } = 30;
     public bool TrustProxy { get; init; }
+
+    /// <summary>
+    /// Networks whose X-Forwarded-* headers are honoured when <see cref="TrustProxy"/> is on. A request from any other
+    /// address has its forwarded headers ignored, so a client that reaches the API directly cannot spoof its IP.
+    /// Defaults to loopback and the private ranges that cluster ingress controllers and Docker networks use.
+    /// </summary>
+    public string[] TrustedProxyNetworks { get; init; } = DefaultTrustedProxyNetworks;
+
+    public static readonly string[] DefaultTrustedProxyNetworks =
+    [
+        "127.0.0.0/8", "::1/128", "10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16", "fc00::/7"
+    ];
     public string AiServiceUrl { get; init; } = "http://localhost:8000";
     public string DemoPassword { get; init; } = DefaultDemoPassword;
 
@@ -55,6 +67,8 @@ public sealed class BallastSettings
             MinLiquidityBuffer = Parse(get("BALLAST_MIN_LIQUIDITY_BUFFER"), defaults.MinLiquidityBuffer, decimal.Parse),
             AuthRateLimitPerMinute = Parse(get("BALLAST_AUTH_RATE_LIMIT"), defaults.AuthRateLimitPerMinute, int.Parse),
             TrustProxy = Parse(get("BALLAST_TRUST_PROXY"), false, bool.Parse),
+            TrustedProxyNetworks = Parse(get("BALLAST_TRUSTED_PROXIES"), defaults.TrustedProxyNetworks,
+                v => v.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)),
             AiServiceUrl = (get("BALLAST_AI_SERVICE_URL") ?? defaults.AiServiceUrl).TrimEnd('/'),
             AllowSelfRegistrationOverride = Parse<bool?>(get("BALLAST_ALLOW_SELF_REGISTRATION"), null, v => bool.Parse(v)),
             DemoPassword = get("BALLAST_DEMO_PASSWORD") ?? defaults.DemoPassword,
@@ -68,6 +82,11 @@ public sealed class BallastSettings
             throw new InvalidOperationException($"BALLAST_AI_SERVICE_URL must be an absolute http or https URL (got '{AiServiceUrl}')");
         if (!Currencies.IsSupported(BaseCurrency))
             throw new InvalidOperationException($"Unsupported base currency '{BaseCurrency}'");
+        foreach (var cidr in TrustedProxyNetworks)
+            if (!System.Net.IPNetwork.TryParse(cidr, out _))
+                throw new InvalidOperationException($"BALLAST_TRUSTED_PROXIES entry '{cidr}' is not a valid CIDR network such as 10.0.0.0/8");
+        if (TrustProxy && TrustedProxyNetworks.Length == 0)
+            throw new InvalidOperationException("BALLAST_TRUST_PROXY is on but BALLAST_TRUSTED_PROXIES is empty, so no proxy could be trusted");
         if (IsProductionLike)
         {
             if (string.IsNullOrWhiteSpace(JwtSecret) || JwtSecret == PlaceholderSecret || JwtSecret.Length < 32)

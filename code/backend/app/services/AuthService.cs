@@ -11,10 +11,7 @@ namespace Ballast.Api.Services;
 public sealed partial class AuthService(
     BallastDb db, PasswordHasher hasher, JwtTokenService jwt, AuditLog audit, BallastSettings settings, TimeProvider clock)
 {
-    private const int MaxFailures = 5;
-    private static readonly TimeSpan LockDuration = TimeSpan.FromMinutes(5);
-
-    private readonly Dictionary<string, (int Failures, DateTimeOffset? LockedUntil)> _attempts = [];
+    private readonly LoginThrottle _throttle = new(clock);
     private readonly object _lock = new();
     private readonly string _dummyHash = hasher.Hash("not-a-real-password");
 
@@ -53,33 +50,27 @@ public sealed partial class AuthService(
         return Issue(user);
     }
 
-    public AuthResponse Login(LoginRequest req)
+    /// <param name="req">Credentials.</param>
+    /// <param name="clientKey">Caller address, so that failures lock out the caller rather than the account owner.</param>
+    public AuthResponse Login(LoginRequest req, string clientKey = "")
     {
         var email = (req.Email ?? "").Trim().ToLowerInvariant();
-        lock (_lock)
-        {
-            if (_attempts.TryGetValue(email, out var a) && a.LockedUntil is { } until && until > clock.GetUtcNow())
-                throw new LockedException("Too many failed attempts. Try again later");
-        }
+        if (_throttle.IsLocked(email, clientKey))
+            throw new LockedException("Too many failed attempts. Try again later");
         var user = FindByEmail(email);
         bool ok = hasher.Verify(req.Password ?? "", user?.PasswordHash ?? _dummyHash) && user is not null;
-        lock (_lock)
-        {
-            if (!ok)
-            {
-                var failures = _attempts.TryGetValue(email, out var a) ? a.Failures + 1 : 1;
-                _attempts[email] = (failures, failures >= MaxFailures ? clock.GetUtcNow().Add(LockDuration) : null);
-            }
-            else _attempts.Remove(email);
-        }
         if (!ok)
         {
-            audit.Append(email, "auth.login_failed", user?.Id ?? "unknown", "Invalid credentials");
+            _throttle.RecordFailure(email, clientKey);
+            audit.Append(Truncate(email), "auth.login_failed", user?.Id ?? "unknown", "Invalid credentials");
             throw new UnauthorizedException("Invalid email or password");
         }
+        _throttle.RecordSuccess(email, clientKey);
         audit.Append(user!.Email, "auth.login", user.Id, "Signed in");
         return Issue(user);
     }
+
+    private static string Truncate(string value) => value.Length <= 80 ? value : value[..80];
 
     public AuthResponse Refresh(RefreshRequest req)
     {

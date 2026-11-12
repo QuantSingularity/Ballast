@@ -11,14 +11,18 @@ import { AuthService } from '../services/auth.service';
         <div class="brand">Ballast<span>.</span></div>
         <nav class="nav" aria-label="Primary">
           @for (item of nav; track item.path) {
-            <a [routerLink]="item.path" routerLinkActive="active">{{ item.label }}</a>
+            <a [routerLink]="item.path" routerLinkActive="active">{{
+              item.label
+            }}</a>
           }
         </nav>
         @if (auth.user(); as user) {
           <div class="userbox">
             <div>{{ user.name }}</div>
             <div class="muted">{{ user.role }}</div>
-            <button class="small" type="button" (click)="auth.logout()">Sign out</button>
+            <button class="small" type="button" (click)="auth.logout()">
+              Sign out
+            </button>
           </div>
         }
       </aside>

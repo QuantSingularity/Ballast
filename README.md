@@ -71,12 +71,12 @@ Without Node: `./scripts/start_dev.sh --api-only`. With Docker: see [infrastruct
 ./scripts/smoke_test.sh     # publishes the API, starts it, signs in, calls the main endpoints
 ```
 
-| Suite     | Tests | What it covers                                                                                                    |
-| --------- | ----- | ----------------------------------------------------------------------------------------------------------------- |
-| AI models | 17    | Forecasting, anomaly detection, HMM, RL policy, risk metrics                                                      |
-| Backend   | 71    | Unit tests plus integration tests against a real Kestrel host (auth, roles, workflow, persistence, rate limiting) |
-| Mobile UI | 30    | The real API client against a real API, token refresh, approval workflow, every Razor page rendered to HTML       |
-| Web       | 38    | Auth, interceptor refresh and retry, guards, charts, role-aware page behavior                                     |
+| Suite     | Tests | What it covers                                                                                                                                                                                |
+| --------- | ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| AI models | 41    | Forecasting, anomaly detection, HMM, RL policy, risk metrics, the FastAPI service                                                                                                             |
+| Backend   | 97    | Unit tests plus integration tests against a real Kestrel host (auth, roles, workflow, persistence, rate limiting, proxy trust, lockout scoping, release netting, concurrent payment creation) |
+| Mobile UI | 30    | The real API client against a real API, token refresh, approval workflow, every Razor page rendered to HTML                                                                                   |
+| Web       | 39    | Auth, interceptor refresh and retry, guards, charts, role-aware page behavior                                                                                                                 |
 
 The Angular types were also diffed against live API JSON for 35 endpoint shapes with zero mismatches.
 

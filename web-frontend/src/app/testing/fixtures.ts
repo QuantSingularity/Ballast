@@ -30,7 +30,12 @@ export const users: Record<string, User> = {
     name: 'Jordan Analyst',
     role: 'Analyst',
   },
-  admin: { id: 'U-001', email: 'admin@ballast.example', name: 'Avery Admin', role: 'Admin' },
+  admin: {
+    id: 'U-001',
+    email: 'admin@ballast.example',
+    name: 'Avery Admin',
+    role: 'Admin',
+  },
 };
 
 export function signIn(user: User): void {
@@ -48,7 +53,9 @@ export const summary: CashSummary = {
     { currency: 'USD', native: 12_200_000, base: 12_200_000, share: 0.3176 },
     { currency: 'EUR', native: 12_300_000, base: 13_345_500, share: 0.3474 },
   ],
-  byEntity: [{ entityId: 'ENT-US', name: 'Ballast Holdings Inc', base: 12_200_000 }],
+  byEntity: [
+    { entityId: 'ENT-US', name: 'Ballast Holdings Inc', base: 12_200_000 },
+  ],
   byBank: [
     { bank: 'Northern Trust', base: 8_600_000, share: 0.2239 },
     { bank: 'Deutsche Bank', base: 6_300_000, share: 0.1638 },
@@ -113,7 +120,10 @@ export const risk: RiskMetrics = {
       confidence: 0.95,
       cashAtRisk: 1_456_139,
       expectedShortfall: 1_700_000,
-      samples: 20,
+      samples: 40,
+      effectiveSamples: 9.3,
+      reliability: 'low',
+      method: 'empirical-floored-by-normal',
     },
   ],
   liquidityBase: 65_319_400,
