@@ -17,6 +17,9 @@ include = ["ballast_ai*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+# Bare `pytest` (as CI runs it) does not put the project root on sys.path the way `python -m pytest` does, and the
+# package is not installed in CI, so name the root explicitly.
+pythonpath = ["."]
 addopts = "-q"
 filterwarnings = ["ignore:Using .httpx. with .starlette.testclient. is deprecated"]
 

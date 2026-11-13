@@ -21,5 +21,6 @@ dotnet build -f net10.0-android
 ```
 
 If a version or template detail has drifted, the fastest fix is to generate a fresh `dotnet new maui-blazor`
-project and copy `MauiProgram.cs`, `SecureTokenStore.cs`, `ApiAddress.cs` and the `ProjectReference` line
-(`AdditionalProperties="BallastUsePackages=true"`) into it.
+project and copy `MauiProgram.cs`, `SecureTokenStore.cs`, `ApiAddress.cs` and the `ProjectReference` line into it.
+The UI project keeps its ASP.NET Core shared framework reference private (`PrivateAssets="all"`), so it does not reach the
+mobile host, which takes the Blazor assemblies from the `Microsoft.AspNetCore.Components.WebView.Maui` package.

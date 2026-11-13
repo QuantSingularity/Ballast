@@ -7,11 +7,7 @@ import { errorMessage, valueOf } from '../utils/format';
   selector: 'app-login',
   template: `
     <div class="login-wrap">
-      <form
-        class="card login-card"
-        (submit)="submit($event)"
-        aria-labelledby="login-title"
-      >
+      <form class="card login-card" (submit)="submit($event)" aria-labelledby="login-title">
         <h1 id="login-title">Ballast<span class="muted">.</span></h1>
         <p class="subtitle">Treasury and liquidity management</p>
         @if (error()) {
@@ -51,8 +47,8 @@ import { errorMessage, valueOf } from '../utils/format';
         </button>
         @if (dev) {
           <p class="muted" style="margin-top: 14px">
-            Development build. Demo users such as treasurer&#64;ballast.example
-            and approver&#64;ballast.example are seeded by the API.
+            Development build. Demo users such as treasurer&#64;ballast.example and
+            approver&#64;ballast.example are seeded by the API.
           </p>
         }
       </form>

@@ -24,14 +24,10 @@ const M = { l: 64, r: 16, t: 12, b: 28 };
             [attr.y1]="t.y"
             [attr.y2]="t.y"
           />
-          <text [attr.x]="margin.l - 8" [attr.y]="t.y + 4" text-anchor="end">
-            {{ t.label }}
-          </text>
+          <text [attr.x]="margin.l - 8" [attr.y]="t.y + 4" text-anchor="end">{{ t.label }}</text>
         }
         @for (t of g.xTicks; track t.x) {
-          <text [attr.x]="t.x" [attr.y]="height - 8" text-anchor="middle">
-            {{ t.label }}
-          </text>
+          <text [attr.x]="t.x" [attr.y]="height - 8" text-anchor="middle">{{ t.label }}</text>
         }
         @if (g.zeroY !== null) {
           <line
@@ -90,18 +86,9 @@ export class LineBandChart {
     const yOf = (v: number) => M.t + (1 - (v - lo) / (hi - lo || 1)) * innerH;
 
     const histPts = hist.map((p, i) => ({ x: xOf(i), y: yOf(p.value) }));
-    const fcPts = fc.map((p, i) => ({
-      x: xOf(hist.length + i),
-      y: yOf(p.value),
-    }));
-    const upper = fc.map((p, i) => ({
-      x: xOf(hist.length + i),
-      y: yOf(p.hi ?? p.value),
-    }));
-    const lower = fc.map((p, i) => ({
-      x: xOf(hist.length + i),
-      y: yOf(p.lo ?? p.value),
-    }));
+    const fcPts = fc.map((p, i) => ({ x: xOf(hist.length + i), y: yOf(p.value) }));
+    const upper = fc.map((p, i) => ({ x: xOf(hist.length + i), y: yOf(p.hi ?? p.value) }));
+    const lower = fc.map((p, i) => ({ x: xOf(hist.length + i), y: yOf(p.lo ?? p.value) }));
     const hasBand = fc.some((p) => p.lo !== undefined && p.hi !== undefined);
 
     const step = Math.max(1, Math.round(all.length / 6));

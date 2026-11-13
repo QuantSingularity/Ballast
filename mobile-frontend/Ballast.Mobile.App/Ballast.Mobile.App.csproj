@@ -33,6 +33,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Ballast.Mobile.UI\Ballast.Mobile.UI.csproj" AdditionalProperties="BallastUsePackages=true" />
+    <ProjectReference Include="..\Ballast.Mobile.UI\Ballast.Mobile.UI.csproj" />
   </ItemGroup>
 </Project>

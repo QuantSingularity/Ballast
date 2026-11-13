@@ -6,10 +6,6 @@ import hashlib
 import logging
 
 import numpy as np
-from fastapi import FastAPI, Request
-from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse
-
 from ballast_ai import __version__
 from ballast_ai.agents import recommend_ratios
 from ballast_ai.anomaly import AnomalyAssessment, OutflowRecord, PaymentAnomalyDetector
@@ -21,6 +17,9 @@ from ballast_ai.research.catalog import MODELS
 from ballast_ai.research.risk_metrics import fx_var
 from ballast_ai.service import schemas as s
 from ballast_ai.service.state import ServiceError, ServiceState
+from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 
 log = logging.getLogger("ballast_ai")
 

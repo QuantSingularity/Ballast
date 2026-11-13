@@ -15,9 +15,7 @@ export class AuthService {
   private refreshing: Promise<boolean> | null = null;
 
   readonly user = signal<User | null>(this.readUser());
-  readonly isAuthenticated = computed(
-    () => this.user() !== null && this.accessToken() !== null,
-  );
+  readonly isAuthenticated = computed(() => this.user() !== null && this.accessToken() !== null);
   readonly canMake = computed(() => this.hasRole('Treasurer', 'Admin'));
   readonly canCheck = computed(() => this.hasRole('Approver', 'Admin'));
   readonly isAdmin = computed(() => this.hasRole('Admin'));
@@ -46,9 +44,7 @@ export class AuthService {
     const token = this.refreshToken();
     if (!token) return false;
     this.refreshing ??= firstValueFrom(
-      this.http.post<AuthResponse>('/api/auth/refresh', {
-        refreshToken: token,
-      }),
+      this.http.post<AuthResponse>('/api/auth/refresh', { refreshToken: token }),
     )
       .then((res) => {
         this.store(res);

@@ -6,7 +6,6 @@ from dataclasses import dataclass
 from datetime import date
 
 import numpy as np
-
 from ballast_ai.forecasting.ensemble import forecast_with_model
 
 

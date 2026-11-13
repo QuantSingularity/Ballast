@@ -1,6 +1,5 @@
 import numpy as np
 import pytest
-
 from ballast_ai.forecasting import (
     HoltWintersAdditive,
     RidgeRegressor,

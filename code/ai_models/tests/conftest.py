@@ -2,7 +2,6 @@ from datetime import date
 
 import numpy as np
 import pytest
-
 from ballast_ai.research import synthetic
 
 START = date(2025, 1, 1)

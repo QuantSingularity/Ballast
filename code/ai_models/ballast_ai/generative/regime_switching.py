@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import numpy as np
-
 from ballast_ai.generative.hmm import GaussianHmm
 
 

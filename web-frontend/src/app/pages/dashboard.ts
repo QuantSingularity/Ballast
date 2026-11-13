@@ -17,23 +17,11 @@ import {
   RiskMetrics,
 } from '../types/models';
 import { ChartPoint } from '../utils/chart';
-import {
-  errorMessage,
-  formatCompact,
-  formatMoney,
-  formatPct,
-} from '../utils/format';
+import { errorMessage, formatCompact, formatMoney, formatPct } from '../utils/format';
 
 @Component({
   selector: 'app-dashboard',
-  imports: [
-    PageHeader,
-    KpiCard,
-    LineBandChart,
-    BarList,
-    StatusBadge,
-    RouterLink,
-  ],
+  imports: [PageHeader, KpiCard, LineBandChart, BarList, StatusBadge, RouterLink],
   template: `
     <div class="page">
       <app-page-header title="Treasury dashboard" [subtitle]="subtitle()" />
@@ -81,39 +69,29 @@ import {
 
         <div class="grid two">
           <section class="card">
-            <div class="card-title">
-              <h2>Projected cash balance, next 91 days</h2>
-            </div>
+            <div class="card-title"><h2>Projected cash balance, next 91 days</h2></div>
             <app-line-band-chart
               [series]="chart()"
               ariaLabel="Projected group cash balance with confidence band"
             />
             <div class="legend">
+              <span><span class="dot" style="background: var(--accent)"></span>Point forecast</span>
               <span
-                ><span class="dot" style="background: var(--accent)"></span
-                >Point forecast</span
-              >
-              <span
-                ><span class="dot" style="background: var(--accent-soft)"></span
-                >90% interval</span
+                ><span class="dot" style="background: var(--accent-soft)"></span>90% interval</span
               >
             </div>
           </section>
           <section class="card">
             <div class="card-title"><h2>Cash by currency</h2></div>
             <app-bar-list [items]="currencyBars()" />
-            <div class="card-title" style="margin-top: 20px">
-              <h2>Cash by bank</h2>
-            </div>
+            <div class="card-title" style="margin-top: 20px"><h2>Cash by bank</h2></div>
             <app-bar-list [items]="bankBars()" />
           </section>
         </div>
 
         <div class="grid two">
           <section class="card flush">
-            <div class="card-title" style="padding: 16px 18px 0">
-              <h2>Liquidity ladder</h2>
-            </div>
+            <div class="card-title" style="padding: 16px 18px 0"><h2>Liquidity ladder</h2></div>
             <div class="scroll">
               <table>
                 <thead>
@@ -128,9 +106,7 @@ import {
                   @for (b of ladder()?.buckets ?? []; track b.days) {
                     <tr>
                       <td>{{ b.label }}</td>
-                      <td class="num">
-                        {{ money(b.projectedBalance, s.baseCurrency) }}
-                      </td>
+                      <td class="num">{{ money(b.projectedBalance, s.baseCurrency) }}</td>
                       <td class="num">{{ money(b.lower, s.baseCurrency) }}</td>
                       <td class="num">{{ money(b.upper, s.baseCurrency) }}</td>
                     </tr>
@@ -157,9 +133,7 @@ import {
                     </tr>
                   } @empty {
                     <tr>
-                      <td class="empty" colspan="2">
-                        All limits are within policy
-                      </td>
+                      <td class="empty" colspan="2">All limits are within policy</td>
                     </tr>
                   }
                 </tbody>
@@ -197,9 +171,7 @@ import {
                       </td>
                       <td class="num">{{ money(p.amount, p.currency, 2) }}</td>
                       <td>{{ p.valueDate }}</td>
-                      <td>
-                        {{ p.approvals.length }} of {{ p.requiredApprovals }}
-                      </td>
+                      <td>{{ p.approvals.length }} of {{ p.requiredApprovals }}</td>
                     </tr>
                   }
                 </tbody>
@@ -231,14 +203,12 @@ export class DashboardPage {
   });
 
   protected readonly projected30 = computed(
-    () =>
-      this.ladder()?.buckets.find((b) => b.days === 30)?.projectedBalance ?? 0,
+    () => this.ladder()?.buckets.find((b) => b.days === 30)?.projectedBalance ?? 0,
   );
   protected readonly car30 = computed(
     () =>
-      this.risk()?.cashAtRisk.find(
-        (c) => c.horizonDays === 30 && c.confidence === 0.95,
-      )?.cashAtRisk ?? 0,
+      this.risk()?.cashAtRisk.find((c) => c.horizonDays === 30 && c.confidence === 0.95)
+        ?.cashAtRisk ?? 0,
   );
   protected readonly coverage = computed(
     () => `${(this.risk()?.liquidityCoverageRatio ?? 0).toFixed(1)}x`,
@@ -248,23 +218,18 @@ export class DashboardPage {
     return c < 1 ? 'bad' : c < 2 ? 'warn' : 'good';
   });
 
-  protected readonly covenantSummary = computed<{
-    text: string;
-    tone: 'good' | 'warn' | 'bad';
-  }>(() => {
-    const all = this.covenants();
-    const breach = all.filter((c) => c.status === 'Breach').length;
-    const warn = all.filter((c) => c.status === 'Warning').length;
-    if (breach > 0)
-      return { text: `${breach} breach${breach > 1 ? 'es' : ''}`, tone: 'bad' };
-    if (warn > 0)
-      return { text: `${warn} warning${warn > 1 ? 's' : ''}`, tone: 'warn' };
-    return { text: 'All clear', tone: 'good' };
-  });
-
-  protected readonly attention = computed(() =>
-    this.limits().filter((l) => l.status !== 'Ok'),
+  protected readonly covenantSummary = computed<{ text: string; tone: 'good' | 'warn' | 'bad' }>(
+    () => {
+      const all = this.covenants();
+      const breach = all.filter((c) => c.status === 'Breach').length;
+      const warn = all.filter((c) => c.status === 'Warning').length;
+      if (breach > 0) return { text: `${breach} breach${breach > 1 ? 'es' : ''}`, tone: 'bad' };
+      if (warn > 0) return { text: `${warn} warning${warn > 1 ? 's' : ''}`, tone: 'warn' };
+      return { text: 'All clear', tone: 'good' };
+    },
   );
+
+  protected readonly attention = computed(() => this.limits().filter((l) => l.status !== 'Ok'));
 
   protected readonly chart = computed<ChartPoint[]>(() => {
     const f = this.forecast();
@@ -300,16 +265,15 @@ export class DashboardPage {
 
   private async load(): Promise<void> {
     try {
-      const [summary, ladder, risk, limits, pending, covenants, forecast] =
-        await Promise.all([
-          firstValueFrom(this.api.cashSummary()),
-          firstValueFrom(this.api.ladder()),
-          firstValueFrom(this.api.riskMetrics()),
-          firstValueFrom(this.api.limits()),
-          firstValueFrom(this.api.payments('PendingApproval')),
-          firstValueFrom(this.api.covenants()),
-          firstValueFrom(this.api.forecast('all', 91, 0.9)),
-        ]);
+      const [summary, ladder, risk, limits, pending, covenants, forecast] = await Promise.all([
+        firstValueFrom(this.api.cashSummary()),
+        firstValueFrom(this.api.ladder()),
+        firstValueFrom(this.api.riskMetrics()),
+        firstValueFrom(this.api.limits()),
+        firstValueFrom(this.api.payments('PendingApproval')),
+        firstValueFrom(this.api.covenants()),
+        firstValueFrom(this.api.forecast('all', 91, 0.9)),
+      ]);
       this.summary.set(summary);
       this.ladder.set(ladder);
       this.risk.set(risk);

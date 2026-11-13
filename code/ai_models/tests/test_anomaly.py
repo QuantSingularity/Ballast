@@ -2,7 +2,6 @@ from datetime import date
 
 import numpy as np
 import pytest
-
 from ballast_ai.anomaly import IsolationForest, OutflowRecord, PaymentAnomalyDetector
 from ballast_ai.research import synthetic
 

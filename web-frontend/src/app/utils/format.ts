@@ -30,18 +30,12 @@ export function formatCompact(value: number | null | undefined): string {
   return `${sign}${abs.toFixed(0)}`;
 }
 
-export function formatPct(
-  value: number | null | undefined,
-  digits = 0,
-): string {
+export function formatPct(value: number | null | undefined, digits = 0): string {
   if (value === null || value === undefined || Number.isNaN(value)) return '-';
   return `${(value * 100).toFixed(digits)}%`;
 }
 
-export function formatNumber(
-  value: number | null | undefined,
-  digits = 2,
-): string {
+export function formatNumber(value: number | null | undefined, digits = 2): string {
   if (value === null || value === undefined || Number.isNaN(value)) return '-';
   return value.toLocaleString('en-US', {
     minimumFractionDigits: digits,
@@ -49,9 +43,7 @@ export function formatNumber(
   });
 }
 
-export function statusTone(
-  status: string,
-): 'good' | 'warn' | 'bad' | 'neutral' {
+export function statusTone(status: string): 'good' | 'warn' | 'bad' | 'neutral' {
   switch (status) {
     case 'Pass':
     case 'Ok':
@@ -77,11 +69,7 @@ export function statusTone(
 
 export function errorMessage(error: unknown): string {
   if (typeof error === 'object' && error !== null) {
-    const e = error as {
-      error?: { message?: string };
-      message?: string;
-      status?: number;
-    };
+    const e = error as { error?: { message?: string }; message?: string; status?: number };
     if (e.error && typeof e.error.message === 'string') return e.error.message;
     if (e.status === 0) return 'The server could not be reached';
     if (typeof e.message === 'string') return e.message;

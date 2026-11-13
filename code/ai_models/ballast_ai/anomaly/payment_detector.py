@@ -9,7 +9,6 @@ from dataclasses import dataclass, field
 from datetime import date
 
 import numpy as np
-
 from ballast_ai.anomaly.isolation_forest import IsolationForest
 from ballast_ai.numerics import mad, median, quantile
 

@@ -1,10 +1,9 @@
 from datetime import date
 
 import pytest
-from fastapi.testclient import TestClient
-
 from ballast_ai.research import synthetic
 from ballast_ai.service import create_app
+from fastapi.testclient import TestClient
 
 START = date(2025, 1, 1)
 
@@ -141,7 +140,6 @@ def test_anomaly_fit_needs_enough_records(client):
 
 def test_regime_fit_filter_and_fx_var_round_trip(client):
     import numpy as np
-
     from ballast_ai.generative import RegimeSwitchingSimulator
 
     returns = (

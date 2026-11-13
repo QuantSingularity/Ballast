@@ -2,7 +2,6 @@ import math
 
 import numpy as np
 import pytest
-
 from ballast_ai.numerics import (
     mad,
     mean,

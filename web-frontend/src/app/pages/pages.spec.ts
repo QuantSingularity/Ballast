@@ -25,10 +25,7 @@ function setup(user: keyof typeof users, stub = apiStub()) {
   });
 }
 
-const settle = async (fixture: {
-  whenStable(): Promise<unknown>;
-  detectChanges(): void;
-}) => {
+const settle = async (fixture: { whenStable(): Promise<unknown>; detectChanges(): void }) => {
   await fixture.whenStable();
   await new Promise((r) => setTimeout(r, 0));
   fixture.detectChanges();
@@ -39,20 +36,14 @@ describe('LoginPage', () => {
   beforeEach(() => {
     sessionStorage.clear();
     TestBed.configureTestingModule({
-      providers: [
-        provideHttpClient(),
-        provideHttpClientTesting(),
-        provideRouter([]),
-      ],
+      providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
     });
   });
 
   it('signs in and navigates to the dashboard', async () => {
     const auth = TestBed.inject(AuthService);
     const router = TestBed.inject(Router);
-    const login = vi
-      .spyOn(auth, 'login')
-      .mockResolvedValue(users['treasurer']!);
+    const login = vi.spyOn(auth, 'login').mockResolvedValue(users['treasurer']!);
     const nav = vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
     const fixture = TestBed.createComponent(LoginPage);
     await fixture.whenStable();
@@ -65,10 +56,7 @@ describe('LoginPage', () => {
     fixture.detectChanges();
     el.querySelector('form')!.dispatchEvent(new Event('submit'));
     await settle(fixture);
-    expect(login).toHaveBeenCalledWith(
-      'treasurer@ballast.example',
-      'secret-pass',
-    );
+    expect(login).toHaveBeenCalledWith('treasurer@ballast.example', 'secret-pass');
     expect(nav).toHaveBeenCalledWith('/dashboard');
   });
 
@@ -93,18 +81,14 @@ describe('LoginPage', () => {
     fixture.detectChanges();
     el.querySelector('form')!.dispatchEvent(new Event('submit'));
     await settle(fixture);
-    expect(el.querySelector('[role=alert]')?.textContent).toContain(
-      'Invalid email or password',
-    );
+    expect(el.querySelector('[role=alert]')?.textContent).toContain('Invalid email or password');
     expect(nav).not.toHaveBeenCalled();
   });
 
   it('disables the submit button until both fields are filled', async () => {
     const fixture = TestBed.createComponent(LoginPage);
     await fixture.whenStable();
-    expect(
-      (fixture.nativeElement as HTMLElement).querySelector('button')!.disabled,
-    ).toBe(true);
+    expect((fixture.nativeElement as HTMLElement).querySelector('button')!.disabled).toBe(true);
   });
 });
 
@@ -119,9 +103,7 @@ describe('DashboardPage', () => {
     expect(text).toContain('Minimum hedge ratio: 31-60 days');
     expect(text).not.toContain('Bank concentration: Northern Trust');
     expect(text).toContain('Payments awaiting approval');
-    expect(
-      (fixture.nativeElement as HTMLElement).querySelector('svg'),
-    ).not.toBeNull();
+    expect((fixture.nativeElement as HTMLElement).querySelector('svg')).not.toBeNull();
   });
 
   it('shows an error banner when the API fails', async () => {
@@ -129,38 +111,29 @@ describe('DashboardPage', () => {
       'treasurer',
       apiStub({
         cashSummary: () =>
-          throwError(
-            () =>
-              new HttpErrorResponse({
-                status: 500,
-                error: { message: 'Boom' },
-              }),
-          ),
+          throwError(() => new HttpErrorResponse({ status: 500, error: { message: 'Boom' } })),
       }),
     );
     const fixture = TestBed.createComponent(DashboardPage);
     await settle(fixture);
     expect(
-      (fixture.nativeElement as HTMLElement).querySelector('[role=alert]')
-        ?.textContent,
+      (fixture.nativeElement as HTMLElement).querySelector('[role=alert]')?.textContent,
     ).toContain('Boom');
   });
 });
 
 describe('PaymentsPage role-aware actions', () => {
   const buttons = (fixture: { nativeElement: unknown }) =>
-    Array.from(
-      (fixture.nativeElement as HTMLElement).querySelectorAll('tbody button'),
-    ).map((b) => b.textContent?.trim());
+    Array.from((fixture.nativeElement as HTMLElement).querySelectorAll('tbody button')).map((b) =>
+      b.textContent?.trim(),
+    );
 
   it('lets an approver approve and reject a pending payment created by someone else', async () => {
     setup('approver');
     const fixture = TestBed.createComponent(PaymentsPage);
     await settle(fixture);
     expect(buttons(fixture)).toEqual(['Approve', 'Reject']);
-    expect((fixture.nativeElement as HTMLElement).textContent).not.toContain(
-      'New payment',
-    );
+    expect((fixture.nativeElement as HTMLElement).textContent).not.toContain('New payment');
   });
 
   it('hides approve from the maker but shows submit for drafts and the creation form', async () => {
@@ -177,9 +150,7 @@ describe('PaymentsPage role-aware actions', () => {
     const fixture = TestBed.createComponent(PaymentsPage);
     await settle(fixture);
     expect(buttons(fixture)).toEqual(['Submit']);
-    expect((fixture.nativeElement as HTMLElement).textContent).toContain(
-      'New payment',
-    );
+    expect((fixture.nativeElement as HTMLElement).textContent).toContain('New payment');
   });
 
   it('offers release only to a maker who did not approve', async () => {
@@ -190,9 +161,7 @@ describe('PaymentsPage role-aware actions', () => {
           of([
             payment({
               status: 'Approved',
-              approvals: [
-                { userId: 'U-003', userName: 'Alex Approver', at: '' },
-              ],
+              approvals: [{ userId: 'U-003', userName: 'Alex Approver', at: '' }],
             }),
           ]),
       }),
@@ -209,9 +178,7 @@ describe('PaymentsPage role-aware actions', () => {
         payments: () =>
           of([
             payment({
-              riskFlags: [
-                'Anomaly screening: Large payment to a new beneficiary',
-              ],
+              riskFlags: ['Anomaly screening: Large payment to a new beneficiary'],
               requiredApprovals: 2,
             }),
           ]),
@@ -233,9 +200,7 @@ describe('PaymentsPage role-aware actions', () => {
           of([
             payment({
               requiredApprovals: 2,
-              approvals: [
-                { userId: 'U-003', userName: 'Alex Approver', at: '' },
-              ],
+              approvals: [{ userId: 'U-003', userName: 'Alex Approver', at: '' }],
             }),
           ]),
       }),
@@ -246,9 +211,7 @@ describe('PaymentsPage role-aware actions', () => {
   });
 
   it('calls the approve endpoint and refreshes', async () => {
-    const paymentAction = vi
-      .fn()
-      .mockReturnValue(of(payment({ status: 'Approved' })));
+    const paymentAction = vi.fn().mockReturnValue(of(payment({ status: 'Approved' })));
     setup('approver', apiStub({ paymentAction }));
     const fixture = TestBed.createComponent(PaymentsPage);
     await settle(fixture);
@@ -267,14 +230,8 @@ describe('RiskPage', () => {
     const fixture = TestBed.createComponent(RiskPage);
     await settle(fixture);
     const el = fixture.nativeElement as HTMLElement;
-    expect(
-      el.querySelector('[data-testid="car-quality"]')?.textContent,
-    ).toContain('low');
-    expect(
-      el.querySelector('[data-testid="car-quality"]')?.textContent,
-    ).toContain('9.3 effective');
-    expect(
-      el.querySelector('[data-testid="car-caveat"]')?.textContent,
-    ).toContain('indicative');
+    expect(el.querySelector('[data-testid="car-quality"]')?.textContent).toContain('low');
+    expect(el.querySelector('[data-testid="car-quality"]')?.textContent).toContain('9.3 effective');
+    expect(el.querySelector('[data-testid="car-caveat"]')?.textContent).toContain('indicative');
   });
 });

@@ -1,6 +1,5 @@
 export type UserRole = 'Analyst' | 'Treasurer' | 'Approver' | 'Admin';
-export type PaymentStatus =
-  'Draft' | 'PendingApproval' | 'Approved' | 'Released' | 'Rejected';
+export type PaymentStatus = 'Draft' | 'PendingApproval' | 'Approved' | 'Released' | 'Rejected';
 export type HedgeDirection = 'SellForeign' | 'BuyForeign';
 
 export interface User {

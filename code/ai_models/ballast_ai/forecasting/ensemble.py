@@ -7,7 +7,6 @@ from dataclasses import dataclass
 from datetime import date, timedelta
 
 import numpy as np
-
 from ballast_ai.forecasting.features import MIN_HISTORY, build_matrix, build_row
 from ballast_ai.forecasting.holt_winters import HoltWintersAdditive
 from ballast_ai.forecasting.ridge import RidgeRegressor

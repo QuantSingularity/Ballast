@@ -4,13 +4,15 @@
     <RootNamespace>Ballast.Mobile.UI</RootNamespace>
   </PropertyGroup>
   <!--
-    Server and test builds use the ASP.NET Core shared framework. The MAUI host references this project with
-    BallastUsePackages=true because mobile targets have no shared framework and need the package instead.
+    This project compiles against the ASP.NET Core shared framework, but the reference is private so it does not flow to
+    consumers. The test project declares its own framework reference. The MAUI host has no shared framework on mobile, so it
+    gets the same Microsoft.AspNetCore.Components assemblies from the Blazor WebView packages it already references.
+
+    An earlier version switched between this reference and a package with a BallastUsePackages property passed through
+    ProjectReference AdditionalProperties. NuGet restore does not see those properties, so restore recorded the framework
+    reference while the build removed it, and the build failed with missing Microsoft.AspNetCore namespaces.
   -->
-  <ItemGroup Condition="'$(BallastUsePackages)' != 'true'">
-    <FrameworkReference Include="Microsoft.AspNetCore.App" />
-  </ItemGroup>
-  <ItemGroup Condition="'$(BallastUsePackages)' == 'true'">
-    <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="10.0.0" />
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" PrivateAssets="all" />
   </ItemGroup>
 </Project>

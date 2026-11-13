@@ -6,13 +6,7 @@ import { PageHeader } from '../components/page-header';
 import { ApiService } from '../services/api.service';
 import { BacktestMetrics, Forecast } from '../types/models';
 import { ChartPoint } from '../utils/chart';
-import {
-  errorMessage,
-  formatCompact,
-  formatMoney,
-  formatPct,
-  valueOf,
-} from '../utils/format';
+import { errorMessage, formatCompact, formatMoney, formatPct, valueOf } from '../utils/format';
 
 @Component({
   selector: 'app-forecast',
@@ -27,24 +21,16 @@ import {
         <div class="form-grid">
           <label
             >Scope
-            <select
-              [value]="scope()"
-              (change)="scope.set(value($event)); reload()"
-            >
+            <select [value]="scope()" (change)="scope.set(value($event)); reload()">
               <option value="all">Group (all operating accounts)</option>
               @for (c of currencies; track c) {
-                <option [value]="'currency:' + c">
-                  {{ c }} accounts (native currency)
-                </option>
+                <option [value]="'currency:' + c">{{ c }} accounts (native currency)</option>
               }
             </select>
           </label>
           <label
             >Horizon
-            <select
-              [value]="horizon()"
-              (change)="horizon.set(+value($event)); reload()"
-            >
+            <select [value]="horizon()" (change)="horizon.set(+value($event)); reload()">
               @for (h of horizons; track h) {
                 <option [value]="h">{{ h }} days</option>
               }
@@ -52,10 +38,7 @@ import {
           </label>
           <label
             >Confidence
-            <select
-              [value]="confidence()"
-              (change)="confidence.set(+value($event)); reload()"
-            >
+            <select [value]="confidence()" (change)="confidence.set(+value($event)); reload()">
               @for (c of confidences; track c) {
                 <option [value]="c">{{ c * 100 }}%</option>
               }
@@ -94,23 +77,16 @@ import {
           />
           <app-kpi-card
             label="Model blend"
-            [value]="
-              formatPct(f.model.weightHoltWinters) +
-              ' / ' +
-              formatPct(f.model.weightRidge)
-            "
+            [value]="formatPct(f.model.weightHoltWinters) + ' / ' + formatPct(f.model.weightRidge)"
             hint="Holt-Winters / ridge"
           />
         </div>
         <section class="card">
           <div class="card-title">
             <h2>
-              {{
-                view() === 'daily'
-                  ? 'Daily net cash flow'
-                  : 'Cumulative net cash flow'
-              }}
-              ({{ f.currency }})
+              {{ view() === 'daily' ? 'Daily net cash flow' : 'Cumulative net cash flow' }} ({{
+                f.currency
+              }})
             </h2>
           </div>
           <app-line-band-chart
@@ -121,14 +97,10 @@ import {
           <div class="legend">
             @if (view() === 'daily') {
               <span
-                ><span class="dot" style="background: var(--muted)"></span>Last
-                60 days actual</span
+                ><span class="dot" style="background: var(--muted)"></span>Last 60 days actual</span
               >
             }
-            <span
-              ><span class="dot" style="background: var(--accent)"></span
-              >Forecast</span
-            >
+            <span><span class="dot" style="background: var(--accent)"></span>Forecast</span>
             <span
               ><span class="dot" style="background: var(--accent-soft)"></span
               >{{ formatPct(f.confidence) }} interval from
@@ -141,8 +113,7 @@ import {
         <section class="card" style="margin-top: 16px">
           <div class="card-title">
             <h2>
-              Backtest, group scope ({{ b.origins }} rolling origins,
-              {{ b.horizon }}-day horizon)
+              Backtest, group scope ({{ b.origins }} rolling origins, {{ b.horizon }}-day horizon)
             </h2>
           </div>
           <div class="scroll">
@@ -159,32 +130,28 @@ import {
                   <td>MASE vs seasonal naive</td>
                   <td class="num">{{ b.mase.toFixed(2) }}</td>
                   <td class="muted">
-                    Below 1.00 means the ensemble beats a seasonal-naive
-                    forecast
+                    Below 1.00 means the ensemble beats a seasonal-naive forecast
                   </td>
                 </tr>
                 <tr>
                   <td>Daily MAE: ensemble</td>
                   <td class="num">{{ compact(b.maeEnsemble) }}</td>
                   <td class="muted">
-                    Holt-Winters alone {{ compact(b.maeHoltWinters) }}, ridge
-                    alone {{ compact(b.maeRidge) }}, seasonal naive
-                    {{ compact(b.maeSeasonalNaive) }}
+                    Holt-Winters alone {{ compact(b.maeHoltWinters) }}, ridge alone
+                    {{ compact(b.maeRidge) }}, seasonal naive {{ compact(b.maeSeasonalNaive) }}
                   </td>
                 </tr>
                 <tr>
                   <td>Cumulative error at horizon</td>
                   <td class="num">{{ compact(b.cumulativeMaeEnsemble) }}</td>
-                  <td class="muted">
-                    Seasonal naive {{ compact(b.cumulativeMaeSeasonalNaive) }}
-                  </td>
+                  <td class="muted">Seasonal naive {{ compact(b.cumulativeMaeSeasonalNaive) }}</td>
                 </tr>
                 <tr>
                   <td>Interval coverage</td>
                   <td class="num">{{ formatPct(b.intervalCoverage, 1) }}</td>
                   <td class="muted">
-                    Nominal {{ formatPct(b.confidence) }}. Coverage below
-                    nominal means intervals are somewhat optimistic
+                    Nominal {{ formatPct(b.confidence) }}. Coverage below nominal means intervals
+                    are somewhat optimistic
                   </td>
                 </tr>
               </tbody>
@@ -218,12 +185,7 @@ export class ForecastPage {
     const f = this.forecast();
     if (!f) return [];
     return this.view() === 'daily'
-      ? f.daily.map((d) => ({
-          label: d.date.slice(5),
-          value: d.point,
-          lo: d.lower,
-          hi: d.upper,
-        }))
+      ? f.daily.map((d) => ({ label: d.date.slice(5), value: d.point, lo: d.lower, hi: d.upper }))
       : f.daily.map((d) => ({
           label: d.date.slice(5),
           value: d.cumulative,
@@ -234,10 +196,7 @@ export class ForecastPage {
 
   protected readonly history = computed<ChartPoint[]>(() =>
     this.view() === 'daily'
-      ? (this.forecast()?.history ?? []).map((h) => ({
-          label: h.date.slice(5),
-          value: h.net,
-        }))
+      ? (this.forecast()?.history ?? []).map((h) => ({ label: h.date.slice(5), value: h.net }))
       : [],
   );
 
@@ -264,9 +223,7 @@ export class ForecastPage {
     this.error.set(null);
     try {
       const [forecast, backtest] = await Promise.all([
-        firstValueFrom(
-          this.api.forecast(this.scope(), this.horizon(), this.confidence()),
-        ),
+        firstValueFrom(this.api.forecast(this.scope(), this.horizon(), this.confidence())),
         firstValueFrom(this.api.backtest('all', 28)),
       ]);
       this.forecast.set(forecast);

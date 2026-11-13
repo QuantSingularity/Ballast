@@ -5,6 +5,9 @@
 1. Branch from `develop`.
 2. Make the change with tests (see below).
 3. `./scripts/lint_code.sh --fix`, then `./scripts/run_tests.sh`. Both must pass. Python is formatted and linted with ruff.
+   The web app is formatted with the prettier in `web-frontend/node_modules` (`./scripts/lint_code.sh --fix`, or `npm run format` inside
+   `web-frontend`). Do not run a global `prettier --write .` from the repo root: it can skip `web-frontend/.prettierrc` and
+   format at the default width of 80 instead of 100, which CI then rejects.
 4. Open a pull request. CI runs the same scripts.
 
 ## Conventions

@@ -6,7 +6,6 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 
 import numpy as np
-
 from ballast_ai.generative import GaussianHmm, RegimeSwitchingSimulator
 from ballast_ai.numerics import mean, normal_inv_cdf, quantile, std
 

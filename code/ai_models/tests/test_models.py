@@ -1,6 +1,5 @@
 import numpy as np
 import pytest
-
 from ballast_ai.agents import QLearningHedger, recommend_ratios
 from ballast_ai.config import HEDGE_RATIO_LEVELS
 from ballast_ai.environments import FxHedgingConfig, FxHedgingEnvironment, encode_state

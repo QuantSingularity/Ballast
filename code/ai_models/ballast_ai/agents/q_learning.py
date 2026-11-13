@@ -8,7 +8,6 @@ from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 
 import numpy as np
-
 from ballast_ai.config import HEDGE_RATIO_LEVELS
 from ballast_ai.environments.fx_hedging import (
     ACTION_COUNT,
