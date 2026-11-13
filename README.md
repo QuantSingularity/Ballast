@@ -6,16 +6,16 @@ and Blazor clients, and its own AI model library.
 
 ## At a glance
 
-| Item    | Detail                                                                                                      |
-| ------- | ----------------------------------------------------------------------------------------------------------- |
-| Backend | ASP.NET Core on .NET 10, in-memory state with an optional JSON snapshot                                     |
-| Web     | Angular 22, standalone components and signals                                                               |
-| Mobile  | Blazor Razor class library with a MAUI host                                                                 |
-| Models  | Python 3.11+, numpy and FastAPI: forecasting, anomaly detection, regime detection, hedging policy           |
-| Data    | Fully synthetic and deterministic. No bank connections, no market data feeds                                |
-| Tests   | 207 automated tests across four suites, plus an end-to-end smoke test                                       |
-| Status  | Working and tested, but not production-ready treasury software. See [Known limitations](#known-limitations) |
-| License | MIT                                                                                                         |
+| Item    | Detail                                                                                            |
+| ------- | ------------------------------------------------------------------------------------------------- |
+| Backend | ASP.NET Core on .NET 10, in-memory state with an optional JSON snapshot                           |
+| Web     | Angular 22, standalone components and signals                                                     |
+| Mobile  | Blazor Razor class library with a MAUI host                                                       |
+| Models  | Python 3.11+, numpy and FastAPI: forecasting, anomaly detection, regime detection, hedging policy |
+| Data    | Fully synthetic and deterministic. No bank connections, no market data feeds                      |
+| Tests   | 207 automated tests across four suites, plus an end-to-end smoke test                             |
+| Status  | Working and tested, but not production-ready treasury software.                                   |
+| License | MIT                                                                                               |
 
 ## Contents
 
@@ -29,7 +29,6 @@ and Blazor clients, and its own AI model library.
 | [Security](#security)                   | What is implemented                        |
 | [Testing and CI](#testing-and-ci)       | Test suites, scripts and the CI pipeline   |
 | [Model quality](#model-quality)         | Measured results with their caveats        |
-| [Known limitations](#known-limitations) | What to know before relying on it          |
 | [Documentation](#documentation)         | Full docs and component READMEs            |
 
 ## What it does
@@ -89,7 +88,6 @@ Ballast/
 ├── infrastructure/          # Dockerfiles, compose, Kubernetes manifests
 ├── scripts/                 # Setup, dev, build, test, lint, smoke test, release
 ├── docs/                    # Architecture, API, configuration, security, results
-├── .github/                 # CI workflow and Dependabot
 └── README.md
 ```
 
