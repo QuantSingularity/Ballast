@@ -173,6 +173,7 @@ The Angular types were also diffed against live API JSON for 35 endpoint shapes 
 | CI job                                | What it checks                                                   | Gate     |
 | ------------------------------------- | ---------------------------------------------------------------- | -------- |
 | Backend (with the real model service) | The .NET solution tests against a live model service             | Required |
+| AI Models Test & Validation           | The 41 pytest model tests and the runnable examples end to end   | Required |
 | Mobile UI library and tests           | Build and test the shared Razor library                          | Required |
 | Web frontend test and build           | Angular unit tests and production build                          | Required |
 | Infrastructure validation             | YAML syntax, plus compose and kustomize checks where tools exist | Required |
